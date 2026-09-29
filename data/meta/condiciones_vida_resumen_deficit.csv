@@ -1,0 +1,9 @@
+h,evento,pct_observado_con_deficit,pct_estandarizado_sin_deficit,diferencia,diferencia_ic95_low,diferencia_ic95_high,n_pares_con_deficit,n_viviendas_con_deficit,n_boot_validos
+1,informal_pasa_a_algun_formal,8.0,10.9,-2.9,-3.6,-2.2,8736,7109,400
+1,informal_pasa_a_sin_ocupados,7.2,8.4,-1.2,-1.9,-0.6,8736,7109,400
+1,formal_pasa_a_sin_ocupados,1.7,1.6,0.1,-0.2,0.4,8088,6342,400
+1,cae_desde_algun_formal,12.5,10.8,1.7,1.0,2.5,8088,6342,400
+4,informal_pasa_a_algun_formal,12.2,15.9,-3.6,-4.6,-2.5,6826,5068,400
+4,informal_pasa_a_sin_ocupados,8.3,9.8,-1.5,-2.3,-0.8,6826,5068,400
+4,formal_pasa_a_sin_ocupados,2.3,2.8,-0.4,-0.9,-0.0,6186,4288,400
+4,cae_desde_algun_formal,17.6,14.9,2.7,1.8,3.9,6186,4288,400

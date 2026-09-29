@@ -1,0 +1,14 @@
+notebook,fecha_hora,commit_git,parametros_json,n_trimestres_procesados,n_filas_escritas,duracion_segundos
+01_ingesta_armonizacion,2026-09-28T23:29:14,sin commit,"{""TRIMESTRES"": null, ""REHACER"": false}",86,0,9.6
+01b_capa_tipada_nucleo,2026-09-28T23:31:35,sin commit,"{""TRIMESTRES"": null, ""REHACER"": false}",86,0,12.6
+01b_capa_tipada_nucleo,2026-09-28T23:37:19,sin commit,"{""TRIMESTRES"": null, ""REHACER"": false}",86,0,13.2
+01b_capa_tipada_nucleo,2026-09-29T00:55:51,sin commit,"{""TRIMESTRES"": null, ""REHACER"": true}",86,5714467,105.8
+02_panel_hogares,2026-09-29T01:14:24,sin commit,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""1f553994e364""}",86,1102268,56.6
+01_ingesta_armonizacion,2026-09-29T01:17:46,sin commit,"{""TRIMESTRES"": null, ""REHACER"": false}",86,393607,85.0
+01b_capa_tipada_nucleo,2026-09-29T01:18:25,sin commit,"{""TRIMESTRES"": null, ""REHACER"": false}",86,393607,17.8
+02_panel_hogares,2026-09-29T01:19:31,sin commit,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""1f553994e364""}",86,1185663,41.2
+02_panel_hogares,2026-09-29T14:19:25,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""a1a3287a63ab""}",86,1123006,134.4
+02_panel_hogares,2026-09-29T16:59:59,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""a1a3287a63ab""}",86,1123006,90.3
+02_panel_hogares,2026-09-29T17:19:19,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": true, ""HORIZONTES"": [1, 4], ""hash_panel"": ""4cae177b4c04""}",86,1123006,167.2
+02_panel_hogares,2026-09-29T17:28:46,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""4cae177b4c04""}",86,1123006,90.2
+02_panel_hogares,2026-09-29T17:41:36,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""4cae177b4c04""}",86,1123006,93.7

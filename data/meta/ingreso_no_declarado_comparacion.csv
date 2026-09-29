@@ -1,0 +1,85 @@
+dimension,categoria,grupo,valor
+n_hogares_y_poblacion,n_hogares (sin ponderar),con_declarar,530016.0
+n_hogares_y_poblacion,poblacion_hogares (ponderada),con_declarar,268246014.0
+deficit_habitacional,False,con_declarar,96.4
+deficit_habitacional,True,con_declarar,3.6
+nivel_educativo_jefe,secundario completo o más,con_declarar,58.1
+nivel_educativo_jefe,secundario incompleto o menos,con_declarar,41.9
+situacion_laboral_hogar,algun_asalariado_formal,con_declarar,45.6
+situacion_laboral_hogar,algun_independiente_sin_asalariado_formal,con_declarar,17.3
+situacion_laboral_hogar,sin_ocupados,con_declarar,23.4
+situacion_laboral_hogar,solo_asalariados_informales,con_declarar,13.6
+aglomerado,2,con_declarar,2.7
+aglomerado,3,con_declarar,1.1
+aglomerado,4,con_declarar,4.8
+aglomerado,5,con_declarar,1.9
+aglomerado,6,con_declarar,1.0
+aglomerado,7,con_declarar,1.4
+aglomerado,8,con_declarar,1.5
+aglomerado,9,con_declarar,1.0
+aglomerado,10,con_declarar,3.7
+aglomerado,12,con_declarar,1.5
+aglomerado,13,con_declarar,7.4
+aglomerado,14,con_declarar,0.5
+aglomerado,15,con_declarar,1.0
+aglomerado,17,con_declarar,1.1
+aglomerado,18,con_declarar,1.6
+aglomerado,19,con_declarar,1.5
+aglomerado,20,con_declarar,0.5
+aglomerado,22,con_declarar,0.9
+aglomerado,23,con_declarar,2.5
+aglomerado,25,con_declarar,0.8
+aglomerado,26,con_declarar,1.0
+aglomerado,27,con_declarar,2.2
+aglomerado,29,con_declarar,3.3
+aglomerado,30,con_declarar,0.5
+aglomerado,31,con_declarar,0.8
+aglomerado,32,con_declarar,12.1
+aglomerado,33,con_declarar,37.0
+aglomerado,34,con_declarar,2.0
+aglomerado,36,con_declarar,0.9
+aglomerado,38,con_declarar,0.8
+aglomerado,91,con_declarar,0.7
+aglomerado,93,con_declarar,0.3
+n_hogares_y_poblacion,n_hogares (sin ponderar),sin_declarar,136533.0
+n_hogares_y_poblacion,poblacion_hogares (ponderada),sin_declarar,103784988.0
+deficit_habitacional,False,sin_declarar,97.4
+deficit_habitacional,True,sin_declarar,2.6
+nivel_educativo_jefe,secundario completo o más,sin_declarar,61.2
+nivel_educativo_jefe,secundario incompleto o menos,sin_declarar,38.8
+situacion_laboral_hogar,algun_asalariado_formal,sin_declarar,50.5
+situacion_laboral_hogar,algun_independiente_sin_asalariado_formal,sin_declarar,23.9
+situacion_laboral_hogar,sin_ocupados,sin_declarar,14.3
+situacion_laboral_hogar,solo_asalariados_informales,sin_declarar,11.3
+aglomerado,2,sin_declarar,5.2
+aglomerado,3,sin_declarar,1.9
+aglomerado,4,sin_declarar,5.7
+aglomerado,5,sin_declarar,2.0
+aglomerado,6,sin_declarar,1.1
+aglomerado,7,sin_declarar,1.1
+aglomerado,8,sin_declarar,0.7
+aglomerado,9,sin_declarar,0.5
+aglomerado,10,sin_declarar,2.6
+aglomerado,12,sin_declarar,0.5
+aglomerado,13,sin_declarar,1.6
+aglomerado,14,sin_declarar,0.4
+aglomerado,15,sin_declarar,0.3
+aglomerado,17,sin_declarar,1.1
+aglomerado,18,sin_declarar,0.3
+aglomerado,19,sin_declarar,0.0
+aglomerado,20,sin_declarar,0.4
+aglomerado,22,sin_declarar,0.2
+aglomerado,23,sin_declarar,0.2
+aglomerado,25,sin_declarar,0.4
+aglomerado,26,sin_declarar,0.4
+aglomerado,27,sin_declarar,0.2
+aglomerado,29,sin_declarar,1.3
+aglomerado,30,sin_declarar,0.5
+aglomerado,31,sin_declarar,0.1
+aglomerado,32,sin_declarar,15.8
+aglomerado,33,sin_declarar,50.5
+aglomerado,34,sin_declarar,3.8
+aglomerado,36,sin_declarar,0.3
+aglomerado,38,sin_declarar,0.5
+aglomerado,91,sin_declarar,0.1
+aglomerado,93,sin_declarar,0.3

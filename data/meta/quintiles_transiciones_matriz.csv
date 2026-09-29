@@ -1,0 +1,451 @@
+h,recorte,grupo_ingreso_t,grupo_ingreso_th,n,pct_fila
+1,todos,Q1,Q1,74248,69.8
+1,todos,Q1,Q2,22562,21.2
+1,todos,Q1,Q3,6414,6.0
+1,todos,Q1,Q4,2306,2.2
+1,todos,Q1,Q5,781,0.7
+1,todos,Q2,Q1,23271,23.0
+1,todos,Q2,Q2,45228,44.7
+1,todos,Q2,Q3,22819,22.5
+1,todos,Q2,Q4,7812,7.7
+1,todos,Q2,Q5,2079,2.1
+1,todos,Q3,Q1,6512,6.9
+1,todos,Q3,Q2,23472,24.7
+1,todos,Q3,Q3,38644,40.7
+1,todos,Q3,Q4,21012,22.2
+1,todos,Q3,Q5,5198,5.5
+1,todos,Q4,Q1,2486,2.8
+1,todos,Q4,Q2,8152,9.1
+1,todos,Q4,Q3,22308,24.8
+1,todos,Q4,Q4,39776,44.2
+1,todos,Q4,Q5,17217,19.1
+1,todos,Q5,Q1,885,1.1
+1,todos,Q5,Q2,2227,2.7
+1,todos,Q5,Q3,5601,6.8
+1,todos,Q5,Q4,18862,22.8
+1,todos,Q5,Q5,55035,66.6
+1,era_historico,Q1,Q1,47081,69.6
+1,era_historico,Q1,Q2,14132,20.9
+1,era_historico,Q1,Q3,4232,6.3
+1,era_historico,Q1,Q4,1640,2.4
+1,era_historico,Q1,Q5,591,0.9
+1,era_historico,Q2,Q1,14564,23.2
+1,era_historico,Q2,Q2,27801,44.2
+1,era_historico,Q2,Q3,13880,22.1
+1,era_historico,Q2,Q4,5112,8.1
+1,era_historico,Q2,Q5,1497,2.4
+1,era_historico,Q3,Q1,4287,7.3
+1,era_historico,Q3,Q2,14114,23.9
+1,era_historico,Q3,Q3,23675,40.0
+1,era_historico,Q3,Q4,13315,22.5
+1,era_historico,Q3,Q5,3724,6.3
+1,era_historico,Q4,Q1,1790,3.2
+1,era_historico,Q4,Q2,5389,9.5
+1,era_historico,Q4,Q3,13866,24.5
+1,era_historico,Q4,Q4,24428,43.1
+1,era_historico,Q4,Q5,11184,19.7
+1,era_historico,Q5,Q1,646,1.2
+1,era_historico,Q5,Q2,1631,3.0
+1,era_historico,Q5,Q3,3980,7.4
+1,era_historico,Q5,Q4,12274,22.7
+1,era_historico,Q5,Q5,35551,65.7
+1,era_regular,Q1,Q1,27167,70.3
+1,era_regular,Q1,Q2,8430,21.8
+1,era_regular,Q1,Q3,2182,5.6
+1,era_regular,Q1,Q4,666,1.7
+1,era_regular,Q1,Q5,190,0.5
+1,era_regular,Q2,Q1,8707,22.7
+1,era_regular,Q2,Q2,17427,45.4
+1,era_regular,Q2,Q3,8939,23.3
+1,era_regular,Q2,Q4,2700,7.0
+1,era_regular,Q2,Q5,582,1.5
+1,era_regular,Q3,Q1,2225,6.2
+1,era_regular,Q3,Q2,9358,26.2
+1,era_regular,Q3,Q3,14969,41.9
+1,era_regular,Q3,Q4,7697,21.5
+1,era_regular,Q3,Q5,1474,4.1
+1,era_regular,Q4,Q1,696,2.1
+1,era_regular,Q4,Q2,2763,8.3
+1,era_regular,Q4,Q3,8442,25.4
+1,era_regular,Q4,Q4,15348,46.1
+1,era_regular,Q4,Q5,6033,18.1
+1,era_regular,Q5,Q1,239,0.8
+1,era_regular,Q5,Q2,596,2.1
+1,era_regular,Q5,Q3,1621,5.7
+1,era_regular,Q5,Q4,6588,23.1
+1,era_regular,Q5,Q5,19484,68.3
+1,mandato_Nestor Kirchner,Q1,Q1,15273,71.0
+1,mandato_Nestor Kirchner,Q1,Q2,4407,20.5
+1,mandato_Nestor Kirchner,Q1,Q3,1202,5.6
+1,mandato_Nestor Kirchner,Q1,Q4,471,2.2
+1,mandato_Nestor Kirchner,Q1,Q5,160,0.7
+1,mandato_Nestor Kirchner,Q2,Q1,4780,24.0
+1,mandato_Nestor Kirchner,Q2,Q2,9254,46.4
+1,mandato_Nestor Kirchner,Q2,Q3,4112,20.6
+1,mandato_Nestor Kirchner,Q2,Q4,1379,6.9
+1,mandato_Nestor Kirchner,Q2,Q5,431,2.2
+1,mandato_Nestor Kirchner,Q3,Q1,1273,6.8
+1,mandato_Nestor Kirchner,Q3,Q2,4439,23.7
+1,mandato_Nestor Kirchner,Q3,Q3,7846,42.0
+1,mandato_Nestor Kirchner,Q3,Q4,4108,22.0
+1,mandato_Nestor Kirchner,Q3,Q5,1031,5.5
+1,mandato_Nestor Kirchner,Q4,Q1,488,2.7
+1,mandato_Nestor Kirchner,Q4,Q2,1533,8.6
+1,mandato_Nestor Kirchner,Q4,Q3,4372,24.6
+1,mandato_Nestor Kirchner,Q4,Q4,8035,45.1
+1,mandato_Nestor Kirchner,Q4,Q5,3376,19.0
+1,mandato_Nestor Kirchner,Q5,Q1,176,1.1
+1,mandato_Nestor Kirchner,Q5,Q2,448,2.7
+1,mandato_Nestor Kirchner,Q5,Q3,1119,6.8
+1,mandato_Nestor Kirchner,Q5,Q4,3705,22.6
+1,mandato_Nestor Kirchner,Q5,Q5,10928,66.7
+1,mandato_CFK I,Q1,Q1,18303,69.6
+1,mandato_CFK I,Q1,Q2,5366,20.4
+1,mandato_CFK I,Q1,Q3,1735,6.6
+1,mandato_CFK I,Q1,Q4,658,2.5
+1,mandato_CFK I,Q1,Q5,224,0.9
+1,mandato_CFK I,Q2,Q1,5455,23.0
+1,mandato_CFK I,Q2,Q2,10109,42.7
+1,mandato_CFK I,Q2,Q3,5511,23.3
+1,mandato_CFK I,Q2,Q4,2054,8.7
+1,mandato_CFK I,Q2,Q5,564,2.4
+1,mandato_CFK I,Q3,Q1,1771,7.9
+1,mandato_CFK I,Q3,Q2,5529,24.6
+1,mandato_CFK I,Q3,Q3,8689,38.7
+1,mandato_CFK I,Q3,Q4,5048,22.5
+1,mandato_CFK I,Q3,Q5,1405,6.3
+1,mandato_CFK I,Q4,Q1,736,3.5
+1,mandato_CFK I,Q4,Q2,2090,9.9
+1,mandato_CFK I,Q4,Q3,5159,24.3
+1,mandato_CFK I,Q4,Q4,9055,42.7
+1,mandato_CFK I,Q4,Q5,4166,19.6
+1,mandato_CFK I,Q5,Q1,263,1.3
+1,mandato_CFK I,Q5,Q2,629,3.0
+1,mandato_CFK I,Q5,Q3,1526,7.4
+1,mandato_CFK I,Q5,Q4,4809,23.3
+1,mandato_CFK I,Q5,Q5,13402,65.0
+1,mandato_CFK II,Q1,Q1,13505,67.9
+1,mandato_CFK II,Q1,Q2,4359,21.9
+1,mandato_CFK II,Q1,Q3,1295,6.5
+1,mandato_CFK II,Q1,Q4,511,2.6
+1,mandato_CFK II,Q1,Q5,207,1.0
+1,mandato_CFK II,Q2,Q1,4329,22.5
+1,mandato_CFK II,Q2,Q2,8438,43.9
+1,mandato_CFK II,Q2,Q3,4257,22.2
+1,mandato_CFK II,Q2,Q4,1679,8.7
+1,mandato_CFK II,Q2,Q5,502,2.6
+1,mandato_CFK II,Q3,Q1,1243,6.9
+1,mandato_CFK II,Q3,Q2,4146,23.1
+1,mandato_CFK II,Q3,Q3,7140,39.7
+1,mandato_CFK II,Q3,Q4,4159,23.1
+1,mandato_CFK II,Q3,Q5,1288,7.2
+1,mandato_CFK II,Q4,Q1,566,3.2
+1,mandato_CFK II,Q4,Q2,1766,10.0
+1,mandato_CFK II,Q4,Q3,4335,24.6
+1,mandato_CFK II,Q4,Q4,7338,41.6
+1,mandato_CFK II,Q4,Q5,3642,20.6
+1,mandato_CFK II,Q5,Q1,207,1.2
+1,mandato_CFK II,Q5,Q2,554,3.2
+1,mandato_CFK II,Q5,Q3,1335,7.8
+1,mandato_CFK II,Q5,Q4,3760,22.0
+1,mandato_CFK II,Q5,Q5,11221,65.7
+1,mandato_Macri,Q1,Q1,13046,72.3
+1,mandato_Macri,Q1,Q2,3735,20.7
+1,mandato_Macri,Q1,Q3,925,5.1
+1,mandato_Macri,Q1,Q4,270,1.5
+1,mandato_Macri,Q1,Q5,77,0.4
+1,mandato_Macri,Q2,Q1,3768,22.2
+1,mandato_Macri,Q2,Q2,7877,46.4
+1,mandato_Macri,Q2,Q3,3968,23.4
+1,mandato_Macri,Q2,Q4,1107,6.5
+1,mandato_Macri,Q2,Q5,263,1.5
+1,mandato_Macri,Q3,Q1,925,5.9
+1,mandato_Macri,Q3,Q2,4000,25.5
+1,mandato_Macri,Q3,Q3,6747,43.0
+1,mandato_Macri,Q3,Q4,3425,21.8
+1,mandato_Macri,Q3,Q5,597,3.8
+1,mandato_Macri,Q4,Q1,296,2.0
+1,mandato_Macri,Q4,Q2,1180,8.1
+1,mandato_Macri,Q4,Q3,3571,24.4
+1,mandato_Macri,Q4,Q4,6909,47.2
+1,mandato_Macri,Q4,Q5,2685,18.3
+1,mandato_Macri,Q5,Q1,105,0.8
+1,mandato_Macri,Q5,Q2,258,2.0
+1,mandato_Macri,Q5,Q3,696,5.4
+1,mandato_Macri,Q5,Q4,2859,22.3
+1,mandato_Macri,Q5,Q5,8879,69.4
+1,mandato_Alberto Fernandez,Q1,Q1,9945,68.5
+1,mandato_Alberto Fernandez,Q1,Q2,3385,23.3
+1,mandato_Alberto Fernandez,Q1,Q3,847,5.8
+1,mandato_Alberto Fernandez,Q1,Q4,272,1.9
+1,mandato_Alberto Fernandez,Q1,Q5,65,0.4
+1,mandato_Alberto Fernandez,Q2,Q1,3584,23.5
+1,mandato_Alberto Fernandez,Q2,Q2,6828,44.7
+1,mandato_Alberto Fernandez,Q2,Q3,3513,23.0
+1,mandato_Alberto Fernandez,Q2,Q4,1151,7.5
+1,mandato_Alberto Fernandez,Q2,Q5,205,1.3
+1,mandato_Alberto Fernandez,Q3,Q1,895,6.3
+1,mandato_Alberto Fernandez,Q3,Q2,3714,26.3
+1,mandato_Alberto Fernandez,Q3,Q3,5786,41.0
+1,mandato_Alberto Fernandez,Q3,Q4,3085,21.9
+1,mandato_Alberto Fernandez,Q3,Q5,616,4.4
+1,mandato_Alberto Fernandez,Q4,Q1,261,2.0
+1,mandato_Alberto Fernandez,Q4,Q2,1112,8.3
+1,mandato_Alberto Fernandez,Q4,Q3,3533,26.5
+1,mandato_Alberto Fernandez,Q4,Q4,6046,45.4
+1,mandato_Alberto Fernandez,Q4,Q5,2372,17.8
+1,mandato_Alberto Fernandez,Q5,Q1,95,0.8
+1,mandato_Alberto Fernandez,Q5,Q2,239,2.1
+1,mandato_Alberto Fernandez,Q5,Q3,671,6.0
+1,mandato_Alberto Fernandez,Q5,Q4,2713,24.3
+1,mandato_Alberto Fernandez,Q5,Q5,7460,66.7
+1,mandato_Milei,Q1,Q1,4176,68.8
+1,mandato_Milei,Q1,Q2,1310,21.6
+1,mandato_Milei,Q1,Q3,410,6.8
+1,mandato_Milei,Q1,Q4,124,2.0
+1,mandato_Milei,Q1,Q5,48,0.8
+1,mandato_Milei,Q2,Q1,1355,22.2
+1,mandato_Milei,Q2,Q2,2722,44.7
+1,mandato_Milei,Q2,Q3,1458,23.9
+1,mandato_Milei,Q2,Q4,442,7.3
+1,mandato_Milei,Q2,Q5,114,1.9
+1,mandato_Milei,Q3,Q1,405,6.8
+1,mandato_Milei,Q3,Q2,1644,27.7
+1,mandato_Milei,Q3,Q3,2436,41.1
+1,mandato_Milei,Q3,Q4,1187,20.0
+1,mandato_Milei,Q3,Q5,261,4.4
+1,mandato_Milei,Q4,Q1,139,2.6
+1,mandato_Milei,Q4,Q2,471,8.9
+1,mandato_Milei,Q4,Q3,1338,25.2
+1,mandato_Milei,Q4,Q4,2393,45.0
+1,mandato_Milei,Q4,Q5,976,18.4
+1,mandato_Milei,Q5,Q1,39,0.9
+1,mandato_Milei,Q5,Q2,99,2.2
+1,mandato_Milei,Q5,Q3,254,5.6
+1,mandato_Milei,Q5,Q4,1016,22.3
+1,mandato_Milei,Q5,Q5,3145,69.1
+4,todos,Q1,Q1,57489,66.2
+4,todos,Q1,Q2,19985,23.0
+4,todos,Q1,Q3,6263,7.2
+4,todos,Q1,Q4,2308,2.7
+4,todos,Q1,Q5,757,0.9
+4,todos,Q2,Q1,20346,24.9
+4,todos,Q2,Q2,34329,41.9
+4,todos,Q2,Q3,18276,22.3
+4,todos,Q2,Q4,7035,8.6
+4,todos,Q2,Q5,1876,2.3
+4,todos,Q3,Q1,6122,8.0
+4,todos,Q3,Q2,19511,25.5
+4,todos,Q3,Q3,29696,38.8
+4,todos,Q3,Q4,16625,21.7
+4,todos,Q3,Q5,4677,6.1
+4,todos,Q4,Q1,2448,3.4
+4,todos,Q4,Q2,7380,10.2
+4,todos,Q4,Q3,18480,25.5
+4,todos,Q4,Q4,30412,42.0
+4,todos,Q4,Q5,13656,18.9
+4,todos,Q5,Q1,819,1.2
+4,todos,Q5,Q2,2224,3.4
+4,todos,Q5,Q3,5315,8.1
+4,todos,Q5,Q4,15747,23.9
+4,todos,Q5,Q5,41795,63.4
+4,era_historico,Q1,Q1,36309,66.2
+4,era_historico,Q1,Q2,12365,22.5
+4,era_historico,Q1,Q3,4059,7.4
+4,era_historico,Q1,Q4,1582,2.9
+4,era_historico,Q1,Q5,531,1.0
+4,era_historico,Q2,Q1,12542,25.0
+4,era_historico,Q2,Q2,20652,41.1
+4,era_historico,Q2,Q3,11159,22.2
+4,era_historico,Q2,Q4,4541,9.0
+4,era_historico,Q2,Q5,1367,2.7
+4,era_historico,Q3,Q1,3900,8.3
+4,era_historico,Q3,Q2,11893,25.2
+4,era_historico,Q3,Q3,17794,37.6
+4,era_historico,Q3,Q4,10480,22.2
+4,era_historico,Q3,Q5,3200,6.8
+4,era_historico,Q4,Q1,1720,3.8
+4,era_historico,Q4,Q2,4699,10.4
+4,era_historico,Q4,Q3,11291,25.0
+4,era_historico,Q4,Q4,18588,41.1
+4,era_historico,Q4,Q5,8926,19.7
+4,era_historico,Q5,Q1,597,1.4
+4,era_historico,Q5,Q2,1616,3.8
+4,era_historico,Q5,Q3,3597,8.4
+4,era_historico,Q5,Q4,10107,23.7
+4,era_historico,Q5,Q5,26806,62.7
+4,era_regular,Q1,Q1,21180,66.3
+4,era_regular,Q1,Q2,7620,23.8
+4,era_regular,Q1,Q3,2204,6.9
+4,era_regular,Q1,Q4,726,2.3
+4,era_regular,Q1,Q5,226,0.7
+4,era_regular,Q2,Q1,7804,24.7
+4,era_regular,Q2,Q2,13677,43.3
+4,era_regular,Q2,Q3,7117,22.5
+4,era_regular,Q2,Q4,2494,7.9
+4,era_regular,Q2,Q5,509,1.6
+4,era_regular,Q3,Q1,2222,7.6
+4,era_regular,Q3,Q2,7618,25.9
+4,era_regular,Q3,Q3,11902,40.5
+4,era_regular,Q3,Q4,6145,20.9
+4,era_regular,Q3,Q5,1477,5.0
+4,era_regular,Q4,Q1,728,2.7
+4,era_regular,Q4,Q2,2681,9.9
+4,era_regular,Q4,Q3,7189,26.5
+4,era_regular,Q4,Q4,11824,43.5
+4,era_regular,Q4,Q5,4730,17.4
+4,era_regular,Q5,Q1,222,1.0
+4,era_regular,Q5,Q2,608,2.6
+4,era_regular,Q5,Q3,1718,7.4
+4,era_regular,Q5,Q4,5640,24.3
+4,era_regular,Q5,Q5,14989,64.7
+4,mandato_Nestor Kirchner,Q1,Q1,13250,67.4
+4,mandato_Nestor Kirchner,Q1,Q2,4382,22.3
+4,mandato_Nestor Kirchner,Q1,Q3,1374,7.0
+4,mandato_Nestor Kirchner,Q1,Q4,493,2.5
+4,mandato_Nestor Kirchner,Q1,Q5,174,0.9
+4,mandato_Nestor Kirchner,Q2,Q1,4667,25.9
+4,mandato_Nestor Kirchner,Q2,Q2,7620,42.3
+4,mandato_Nestor Kirchner,Q2,Q3,3820,21.2
+4,mandato_Nestor Kirchner,Q2,Q4,1475,8.2
+4,mandato_Nestor Kirchner,Q2,Q5,434,2.4
+4,mandato_Nestor Kirchner,Q3,Q1,1333,7.8
+4,mandato_Nestor Kirchner,Q3,Q2,4417,25.9
+4,mandato_Nestor Kirchner,Q3,Q3,6460,37.9
+4,mandato_Nestor Kirchner,Q3,Q4,3758,22.1
+4,mandato_Nestor Kirchner,Q3,Q5,1059,6.2
+4,mandato_Nestor Kirchner,Q4,Q1,543,3.4
+4,mandato_Nestor Kirchner,Q4,Q2,1582,9.8
+4,mandato_Nestor Kirchner,Q4,Q3,4097,25.5
+4,mandato_Nestor Kirchner,Q4,Q4,6853,42.6
+4,mandato_Nestor Kirchner,Q4,Q5,3013,18.7
+4,mandato_Nestor Kirchner,Q5,Q1,191,1.3
+4,mandato_Nestor Kirchner,Q5,Q2,503,3.4
+4,mandato_Nestor Kirchner,Q5,Q3,1114,7.5
+4,mandato_Nestor Kirchner,Q5,Q4,3610,24.4
+4,mandato_Nestor Kirchner,Q5,Q5,9354,63.3
+4,mandato_CFK I,Q1,Q1,15981,66.8
+4,mandato_CFK I,Q1,Q2,5259,22.0
+4,mandato_CFK I,Q1,Q3,1789,7.5
+4,mandato_CFK I,Q1,Q4,690,2.9
+4,mandato_CFK I,Q1,Q5,218,0.9
+4,mandato_CFK I,Q2,Q1,5379,25.0
+4,mandato_CFK I,Q2,Q2,8630,40.1
+4,mandato_CFK I,Q2,Q3,4892,22.8
+4,mandato_CFK I,Q2,Q4,2014,9.4
+4,mandato_CFK I,Q2,Q5,585,2.7
+4,mandato_CFK I,Q3,Q1,1794,8.9
+4,mandato_CFK I,Q3,Q2,5059,25.0
+4,mandato_CFK I,Q3,Q3,7571,37.5
+4,mandato_CFK I,Q3,Q4,4446,22.0
+4,mandato_CFK I,Q3,Q5,1342,6.6
+4,mandato_CFK I,Q4,Q1,825,4.3
+4,mandato_CFK I,Q4,Q2,2051,10.6
+4,mandato_CFK I,Q4,Q3,4811,24.8
+4,mandato_CFK I,Q4,Q4,7760,40.1
+4,mandato_CFK I,Q4,Q5,3923,20.3
+4,mandato_CFK I,Q5,Q1,268,1.5
+4,mandato_CFK I,Q5,Q2,730,4.0
+4,mandato_CFK I,Q5,Q3,1665,9.0
+4,mandato_CFK I,Q5,Q4,4323,23.4
+4,mandato_CFK I,Q5,Q5,11449,62.1
+4,mandato_CFK II,Q1,Q1,7078,63.0
+4,mandato_CFK II,Q1,Q2,2724,24.2
+4,mandato_CFK II,Q1,Q3,896,8.0
+4,mandato_CFK II,Q1,Q4,399,3.6
+4,mandato_CFK II,Q1,Q5,139,1.2
+4,mandato_CFK II,Q2,Q1,2496,23.2
+4,mandato_CFK II,Q2,Q2,4402,41.0
+4,mandato_CFK II,Q2,Q3,2447,22.8
+4,mandato_CFK II,Q2,Q4,1052,9.8
+4,mandato_CFK II,Q2,Q5,348,3.2
+4,mandato_CFK II,Q3,Q1,773,7.7
+4,mandato_CFK II,Q3,Q2,2417,24.1
+4,mandato_CFK II,Q3,Q3,3763,37.5
+4,mandato_CFK II,Q3,Q4,2276,22.7
+4,mandato_CFK II,Q3,Q5,799,8.0
+4,mandato_CFK II,Q4,Q1,352,3.6
+4,mandato_CFK II,Q4,Q2,1066,10.9
+4,mandato_CFK II,Q4,Q3,2383,24.4
+4,mandato_CFK II,Q4,Q4,3975,40.7
+4,mandato_CFK II,Q4,Q5,1990,20.4
+4,mandato_CFK II,Q5,Q1,138,1.5
+4,mandato_CFK II,Q5,Q2,383,4.0
+4,mandato_CFK II,Q5,Q3,818,8.6
+4,mandato_CFK II,Q5,Q4,2174,22.8
+4,mandato_CFK II,Q5,Q5,6003,63.1
+4,mandato_Macri,Q1,Q1,10505,66.9
+4,mandato_Macri,Q1,Q2,3755,23.9
+4,mandato_Macri,Q1,Q3,973,6.2
+4,mandato_Macri,Q1,Q4,356,2.3
+4,mandato_Macri,Q1,Q5,110,0.7
+4,mandato_Macri,Q2,Q1,3382,22.9
+4,mandato_Macri,Q2,Q2,6497,44.0
+4,mandato_Macri,Q2,Q3,3437,23.3
+4,mandato_Macri,Q2,Q4,1217,8.2
+4,mandato_Macri,Q2,Q5,233,1.6
+4,mandato_Macri,Q3,Q1,946,6.9
+4,mandato_Macri,Q3,Q2,3329,24.3
+4,mandato_Macri,Q3,Q3,5740,41.9
+4,mandato_Macri,Q3,Q4,2994,21.8
+4,mandato_Macri,Q3,Q5,705,5.1
+4,mandato_Macri,Q4,Q1,314,2.5
+4,mandato_Macri,Q4,Q2,1137,9.1
+4,mandato_Macri,Q4,Q3,3164,25.3
+4,mandato_Macri,Q4,Q4,5676,45.4
+4,mandato_Macri,Q4,Q5,2209,17.7
+4,mandato_Macri,Q5,Q1,108,1.0
+4,mandato_Macri,Q5,Q2,287,2.6
+4,mandato_Macri,Q5,Q3,745,6.7
+4,mandato_Macri,Q5,Q4,2609,23.3
+4,mandato_Macri,Q5,Q5,7451,66.5
+4,mandato_Alberto Fernandez,Q1,Q1,8584,66.3
+4,mandato_Alberto Fernandez,Q1,Q2,3078,23.8
+4,mandato_Alberto Fernandez,Q1,Q3,911,7.0
+4,mandato_Alberto Fernandez,Q1,Q4,286,2.2
+4,mandato_Alberto Fernandez,Q1,Q5,84,0.6
+4,mandato_Alberto Fernandez,Q2,Q1,3648,26.8
+4,mandato_Alberto Fernandez,Q2,Q2,5792,42.6
+4,mandato_Alberto Fernandez,Q2,Q3,2953,21.7
+4,mandato_Alberto Fernandez,Q2,Q4,1021,7.5
+4,mandato_Alberto Fernandez,Q2,Q5,198,1.5
+4,mandato_Alberto Fernandez,Q3,Q1,1008,8.1
+4,mandato_Alberto Fernandez,Q3,Q2,3392,27.2
+4,mandato_Alberto Fernandez,Q3,Q3,4957,39.8
+4,mandato_Alberto Fernandez,Q3,Q4,2510,20.1
+4,mandato_Alberto Fernandez,Q3,Q5,599,4.8
+4,mandato_Alberto Fernandez,Q4,Q1,325,2.7
+4,mandato_Alberto Fernandez,Q4,Q2,1299,11.0
+4,mandato_Alberto Fernandez,Q4,Q3,3291,27.7
+4,mandato_Alberto Fernandez,Q4,Q4,4967,41.9
+4,mandato_Alberto Fernandez,Q4,Q5,1981,16.7
+4,mandato_Alberto Fernandez,Q5,Q1,86,0.9
+4,mandato_Alberto Fernandez,Q5,Q2,272,2.8
+4,mandato_Alberto Fernandez,Q5,Q3,833,8.6
+4,mandato_Alberto Fernandez,Q5,Q4,2484,25.5
+4,mandato_Alberto Fernandez,Q5,Q5,6054,62.2
+4,mandato_Milei,Q1,Q1,2091,63.1
+4,mandato_Milei,Q1,Q2,787,23.7
+4,mandato_Milei,Q1,Q3,320,9.7
+4,mandato_Milei,Q1,Q4,84,2.5
+4,mandato_Milei,Q1,Q5,32,1.0
+4,mandato_Milei,Q2,Q1,774,24.0
+4,mandato_Milei,Q2,Q2,1388,43.1
+4,mandato_Milei,Q2,Q3,727,22.6
+4,mandato_Milei,Q2,Q4,256,7.9
+4,mandato_Milei,Q2,Q5,78,2.4
+4,mandato_Milei,Q3,Q1,268,8.4
+4,mandato_Milei,Q3,Q2,897,28.2
+4,mandato_Milei,Q3,Q3,1205,37.8
+4,mandato_Milei,Q3,Q4,641,20.1
+4,mandato_Milei,Q3,Q5,173,5.4
+4,mandato_Milei,Q4,Q1,89,3.2
+4,mandato_Milei,Q4,Q2,245,8.8
+4,mandato_Milei,Q4,Q3,734,26.3
+4,mandato_Milei,Q4,Q4,1181,42.3
+4,mandato_Milei,Q4,Q5,540,19.4
+4,mandato_Milei,Q5,Q1,28,1.2
+4,mandato_Milei,Q5,Q2,49,2.2
+4,mandato_Milei,Q5,Q3,140,6.2
+4,mandato_Milei,Q5,Q4,547,24.3
+4,mandato_Milei,Q5,Q5,1484,66.0

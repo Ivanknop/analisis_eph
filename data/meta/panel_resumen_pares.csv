@@ -1,0 +1,13 @@
+regimen_ingreso,mandato_presidencial_t,n_pares,n_identidad_confirmada,n_identidad_no_confirmada,n_jefe_ambiguo,n_cambio_composicion,h
+historico,CFK I,127265,115739,11524,2,36312,1
+historico,CFK II,103253,92867,10386,0,29524,1
+historico,Nestor Kirchner,105440,96576,8862,2,29421,1
+regular,Alberto Fernandez,107254,96618,10636,0,29464,1
+regular,Macri,122807,109606,13201,0,35849,1
+regular,Milei,48419,43168,5251,0,13467,1
+historico,CFK I,117600,104712,12888,0,42443,4
+historico,CFK II,58749,51873,6876,0,21058,4
+historico,Nestor Kirchner,97526,87316,10209,1,35381,4
+regular,Alberto Fernandez,99042,87476,11566,0,33992,4
+regular,Macri,109192,95653,13539,0,39193,4
+regular,Milei,26459,23221,3238,0,8966,4
