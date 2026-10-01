@@ -12,3 +12,14 @@ notebook,fecha_hora,commit_git,parametros_json,n_trimestres_procesados,n_filas_e
 02_panel_hogares,2026-09-29T17:19:19,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": true, ""HORIZONTES"": [1, 4], ""hash_panel"": ""4cae177b4c04""}",86,1123006,167.2
 02_panel_hogares,2026-09-29T17:28:46,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""4cae177b4c04""}",86,1123006,90.2
 02_panel_hogares,2026-09-29T17:41:36,57e89e3,"{""TRIMESTRES"": null, ""REHACER"": false, ""HORIZONTES"": [1, 4], ""hash_panel"": ""4cae177b4c04""}",86,1123006,93.7
+04_trayectorias,2026-10-01T11:25:25,ecfb55b,"{""TRIMESTRES"": [[2022, 1], [2022, 2], [2022, 3], [2022, 4], [2023, 1], [2023, 2], [2023, 3], [2023, 4], [2024, 1], [2024, 2], [2024, 3], [2024, 4]], ""REHACER"": false}",12,30271,19.3
+04_trayectorias,2026-10-01T11:27:01,ecfb55b,"{""TRIMESTRES"": null, ""REHACER"": false}",86,204741,58.5
+04_trayectorias,2026-10-01T12:27:15,ecfb55b,"{""TRIMESTRES"": [[2011, 1], [2011, 2], [2011, 3], [2011, 4], [2012, 1], [2012, 2], [2012, 3], [2012, 4], [2013, 1], [2013, 2], [2013, 3], [2013, 4], [2014, 1], [2014, 2], [2014, 3], [2014, 4], [2015, 1], [2015, 2], [2015, 3], [2015, 4]], ""REHACER"": false}",20,34946,28.3
+04_trayectorias,2026-10-01T12:31:50,ecfb55b,"{""TRIMESTRES"": null, ""REHACER"": false}",86,204741,59.2
+04_trayectorias,2026-10-01T13:09:01,ecfb55b,"{""TRIMESTRES"": [[2011, 1], [2011, 2], [2011, 3], [2011, 4], [2012, 1], [2012, 2], [2012, 3], [2012, 4], [2013, 1], [2013, 2], [2013, 3], [2013, 4], [2014, 1], [2014, 2], [2014, 3], [2014, 4], [2015, 1], [2015, 2], [2015, 3], [2015, 4]], ""REHACER"": false}",20,34946,37.8
+04_trayectorias,2026-10-01T13:11:45,ecfb55b,"{""TRIMESTRES"": null, ""REHACER"": false}",86,204741,70.0
+05_composicion_quintiles,2026-10-01T14:00:04,ecfb55b,"{""TRIMESTRES"": null, ""GUARDAR_FIGURAS"": true}",86,1458644,66.2
+05_composicion_quintiles,2026-10-01T14:03:11,ecfb55b,"{""TRIMESTRES"": null, ""GUARDAR_FIGURAS"": true}",86,1458644,64.8
+06_poblacion_riesgo,2026-10-01T14:22:33,ecfb55b,"{""TRIMESTRES"": null}",86,1458644,37.7
+06_poblacion_riesgo,2026-10-01T14:24:37,ecfb55b,"{""TRIMESTRES"": null}",86,1458644,37.0
+06_poblacion_riesgo,2026-10-01T18:09:09,ecfb55b,"{""TRIMESTRES"": null}",86,1458644,81.7

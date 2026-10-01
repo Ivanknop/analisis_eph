@@ -1,0 +1,87 @@
+ANO4_t0,TRIMESTRE_t0,era,completable,motivo,posterior_ampliacion_2006t3,corte_estructural_d13,n_vivienda_visita1,n_vinculada,n_identidad_confirmada
+2003,3,historico,True,,False,False,2646,2413,2024
+2003,4,historico,True,,False,False,2703,2300,1868
+2004,1,historico,True,,False,False,2619,2453,2006
+2004,2,historico,True,,False,False,3064,2561,2081
+2004,3,historico,True,,False,False,3069,2574,2105
+2004,4,historico,True,,False,False,3044,2450,2018
+2005,1,historico,True,,False,False,3018,2463,2048
+2005,2,historico,True,,False,False,3003,2566,2103
+2005,3,historico,True,,False,False,3048,2535,2087
+2005,4,historico,True,,False,False,3000,2417,1973
+2006,1,historico,True,,False,False,2964,2396,2006
+2006,2,historico,False,trimestre no publicado: t0+5,False,False,3794,0,0
+2006,3,historico,False,trimestre no publicado: t0+4,True,False,5706,0,0
+2006,4,historico,True,,True,False,4103,3276,2670
+2007,1,historico,True,,True,False,4050,3296,2660
+2007,2,historico,False,trimestre no publicado: t0+1,True,False,4079,0,0
+2007,4,historico,True,,True,False,3901,3109,2508
+2008,1,historico,True,,False,False,4011,3189,2567
+2008,2,historico,True,,False,False,4023,3230,2605
+2008,3,historico,True,,False,False,4066,3380,2755
+2008,4,historico,True,,False,False,4021,3194,2576
+2009,1,historico,True,,False,False,3917,3156,2567
+2009,2,historico,True,,False,False,3924,3259,2608
+2009,3,historico,True,,False,False,4062,3278,2630
+2009,4,historico,True,,False,False,3881,3109,2550
+2010,1,historico,True,,False,False,3854,3110,2517
+2010,2,historico,True,,False,False,3978,3218,2614
+2010,3,historico,True,,False,False,4034,3306,2690
+2010,4,historico,True,,False,False,3920,3139,2575
+2011,1,historico,True,,False,False,3895,3187,2577
+2011,2,historico,True,,False,False,3960,3255,2624
+2011,3,historico,True,,False,False,3897,3102,2465
+2011,4,historico,True,,False,False,3871,3136,2542
+2012,1,historico,True,,False,False,3779,3119,2498
+2012,2,historico,True,,False,False,3862,3179,2560
+2012,3,historico,True,,False,False,3751,3028,2474
+2012,4,historico,True,,False,False,3688,3011,2411
+2013,1,historico,True,,False,True,4631,0,0
+2013,2,historico,True,,False,True,4014,0,0
+2013,3,historico,True,,False,True,4462,3340,2622
+2013,4,historico,True,,False,False,4046,3254,2591
+2014,1,historico,True,,False,False,3637,3335,2565
+2014,2,historico,False,trimestre no publicado: t0+5,False,False,4088,0,0
+2014,3,historico,False,"trimestre no publicado: t0+4, t0+5",False,False,4744,0,0
+2014,4,historico,False,"trimestre no publicado: t0+4, t0+5",False,False,4326,0,0
+2015,1,historico,False,trimestre no publicado: t0+4,False,False,4307,0,0
+2015,2,historico,False,trimestre no publicado: t0+1,False,False,5581,0,0
+2016,2,regular,True,,False,False,3751,3443,2674
+2016,3,regular,True,,False,False,3707,3366,2574
+2016,4,regular,True,,False,False,3506,3180,2451
+2017,1,regular,True,,False,False,4050,3368,2665
+2017,2,regular,True,,False,False,4072,3280,2575
+2017,3,regular,True,,False,False,4100,3306,2614
+2017,4,regular,True,,False,False,4093,3281,2602
+2018,1,regular,True,,False,False,4029,3249,2572
+2018,2,regular,True,,False,False,4035,3174,2498
+2018,3,regular,True,,False,False,4036,3178,2516
+2018,4,regular,True,,False,False,3983,3043,2414
+2019,1,regular,True,,False,False,3779,2552,2041
+2019,2,regular,True,,False,False,3358,2297,1859
+2019,3,regular,True,,False,False,3469,2588,2020
+2019,4,regular,True,,False,False,3665,2597,2061
+2020,1,regular,True,,False,False,3476,2235,1844
+2020,2,regular,True,,False,False,1589,1265,1004
+2020,3,regular,True,,False,False,2877,2222,1758
+2020,4,regular,True,,False,False,2750,2109,1678
+2021,1,regular,True,,False,False,3221,2570,2038
+2021,2,regular,True,,False,False,3295,2565,2058
+2021,3,regular,True,,False,False,3430,2605,2026
+2021,4,regular,True,,False,False,3566,2674,2132
+2022,1,regular,True,,False,False,4096,3131,2478
+2022,2,regular,True,,False,False,3391,2607,2060
+2022,3,regular,True,,False,False,3977,3033,2422
+2022,4,regular,True,,False,False,3364,2584,2085
+2023,1,regular,True,,False,False,3386,2603,2063
+2023,2,regular,True,,False,False,3543,2746,2161
+2023,3,regular,True,,False,False,3411,2622,2069
+2023,4,regular,True,,False,False,3262,2488,1973
+2024,1,regular,True,,False,False,3784,2908,2231
+2024,2,regular,True,,False,False,3367,2592,2027
+2024,3,regular,True,,False,False,3920,2957,2331
+2024,4,regular,False,trimestre no publicado: t0+5,False,False,4640,0,0
+2025,1,regular,False,"trimestre no publicado: t0+4, t0+5",False,False,4555,0,0
+2025,2,regular,False,"trimestre no publicado: t0+4, t0+5",False,False,3423,0,0
+2025,3,regular,False,"trimestre no publicado: t0+4, t0+5",False,False,3284,0,0
+2025,4,regular,False,"trimestre no publicado: t0+1, t0+4, t0+5",False,False,4756,0,0
