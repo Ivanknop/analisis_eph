@@ -677,3 +677,296 @@ quedan fuera).
 **Pendiente de decisión de Iván**: cuál de las 3 (o una combinación) define la población
 en riesgo para el resto del TFI, y qué variante de `sale_binario` (principal/robustez) usar
 como etiqueta. No se recomienda ninguna desde acá.
+
+## D15 (2026-10-01) — Reencuadre: el eje es informalidad × quintil × vivienda; el mandato es contexto
+
+**[confirmado por Iván]** El eje del TFI es predecir, a nivel hogar, el **riesgo de caer en
+mayor informalidad o de no salir de ella** entre `t` y `t+h`, según el quintil de ingreso y
+las condiciones habitacionales. El mandato presidencial (y la alineación provincia–Nación)
+queda como **una variable de contexto más**: describe el período y se evalúa al final como
+feature candidata (modelos con y sin ella), no organiza el análisis. Motivo: con 6 mandatos
+el contraste entre ellos es estadística descriptiva con pocas ventanas, no el aporte
+predictivo que busca el TFI. Esto formaliza lo que el encabezado del notebook 06 ya decía.
+
+**Cambios de esta entrada (solo documentación, sin tocar código ni re-correr nada)**:
+- `README.md`: pregunta reescrita sobre el eje nuevo; mapa de qué notebook cubre cada parte;
+  tabla del pipeline completada (03 a 06).
+- `notebooks/05_composicion_quintiles.ipynb`: nota al inicio aclarando que las secciones por
+  mandato (3, 5, 6) son contexto descriptivo. No se renombra el notebook ni se borran
+  secciones (cambios solo aditivos).
+- Se mantienen sin cambios `panel.mandato_presidencial` (D5), la columna
+  `mandato_presidencial_t/_th` de los pares y `panel_resumen_final.csv` por mandato: siguen
+  siendo útiles como variable de contexto y para documentar sesgos de N (ver la nota de D9
+  sobre CFK II y D13).
+
+**Dos direcciones del resultado** (ya medidas de forma descriptiva, sin etiqueta elegida):
+- **Permanencia / no salida**: definición **b** de D14 (`activos_sin_empleo_formal`), y
+  `informal_se_queda` / `informal_pasa_a_formal` de la Parte E del notebook 03.
+- **Caída**: `cae_desde_algun_formal` y `formal_pasa_a_informal` de la Parte E del notebook 03
+  (`condiciones_vida_transiciones.csv`, `condiciones_vida_resumen_deficit.csv`). El notebook
+  06 todavía no la incorpora: solo mide salida.
+
+**[confirmado, números ya en `data/meta/`]** Brecha por `ancla_con_deficit`, estandarizada
+por quintil × nivel educativo del jefe/a (notebook 03, IC95% bootstrap por vivienda):
+
+| h | evento | con déficit | estandarizado sin déficit | dif. (IC95%) |
+|---|---|---|---|---|
+| 1 | informal pasa a algún formal | 8.0% | 10.9% | -2.9pp [-3.6, -2.2] |
+| 1 | cae desde algún formal | 12.5% | 10.8% | +1.7pp [1.0, 2.5] |
+| 4 | informal pasa a algún formal | 12.2% | 15.9% | -3.6pp [-4.6, -2.5] |
+| 4 | cae desde algún formal | 17.6% | 14.9% | +2.7pp [1.8, 3.9] |
+
+Las dos direcciones apuntan al mismo lado: con déficit habitacional se sale menos y se cae
+más, neto de quintil y educación. Descriptivo, no causal.
+
+**Alcance de esta tabla, aclarado**: estos números salen del notebook 03 sobre
+`TRIMESTRES_MUESTRA` (~24 trimestres: T2 de cada año 2004-2025 + 2024T4 + 2025T4), **no**
+sobre los 86 trimestres completos que corre el notebook 06 -- no son directamente
+comparables a los números de `riesgo_salida_*.csv` sin esa salvedad (N distinto,
+estratificación por quintil×educación en vez de decil, y una implementación de bootstrap
+propia del 03, no `src/bootstrap.py`).
+
+**PENDIENTE de decisión de Iván — qué es "caer en mayor informalidad"**. Opciones, ninguna
+implementada:
+1. **Pérdida del empleo formal del hogar**: algún asalariado formal en `t` → ninguno en `t+h`
+   (= `cae_desde_algun_formal` actual). Simple y ya calculada; no ve cambios dentro de
+   hogares que ya eran informales.
+2. **Intensificación**: sube la proporción de ocupados informales del hogar, o pasa de
+   informal a desocupado/sin ocupados. Captura deterioro dentro de la informalidad, pero
+   depende de cambios de composición del hogar (D11) y del tamaño.
+3. **Escala ordinal por hogar** (formal > independiente > solo asalariados informales > sin
+   ocupados, la misma de `situacion_laboral`): caída = baja al menos un escalón, permanencia
+   = no sube. Unifica las dos direcciones en una sola variable, a costa de suponer un orden
+   entre independiente e informal que no siempre vale (el independiente puede ganar más).
+
+Elegida la opción, falta llevar la caída al notebook 06 (misma población, mismos IC y
+estratificación por decil que la salida) para que las dos direcciones queden comparables.
+
+## D16 (2026-10-01) — "Caer en mayor informalidad": intensificación (opción 2 de D15, elegida)
+
+**[confirmado por Iván]** De las 3 opciones de D15 para "caer en mayor informalidad", se
+elige la **opción 2, intensificación**: sube la proporción de activos informales o
+desocupados del hogar, en vez de la pérdida completa del empleo formal (opción 1) o una
+escala ordinal única (opción 3).
+
+**[confirmado, número real]** Por qué se descartó la opción 1: su población de partida
+(hogares con algún asalariado formal en `t`) está fuertemente concentrada en deciles
+altos -- calculado con `calcular_precariedad` (notebook 06) sobre pares con
+`identidad_confirmada==True`, excluyendo orígenes D13 en `h=4`, pooled por era y
+horizonte:
+
+| decil | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| % con algún formal en `t` | 15.4% | 34.8% | 45.2% | 46.7% | 47.2% | 54.2% | 57.1% | 59.8% | 63.6% | 63.4% |
+
+El patrón es consistente separado por era y por `h` (15-16% en decil 1, 60-66% en
+deciles 9-10 en las 4 combinaciones). La opción 1 solo "ve" caída en hogares que ya
+tienen un pie en la formalidad, justo los menos representados en los deciles donde más
+importa medir precariedad -- la opción 2 no tiene ese sesgo de entrada.
+
+**Diseño acordado, pendiente de implementar en el notebook 06**:
+- **Unidad**: personas activas (`ESTADO∈{1,2}`) presentes en `t` y `t+h` dentro del
+  mismo hogar, emparejadas por sexo+edad (ventana D6, mismo mecanismo que
+  `panel.contar_altas_bajas`). Altas/bajas de activos se reportan aparte, no cuentan
+  como intensificación.
+- **Medida**: `share_precario = (asalariados_informales + desocupados) / activos`,
+  sobre las personas activas estables. Intensificación = `share_th > share_t`. Matriz de
+  transición persona a persona como complemento (formal→informal, formal→desocupado,
+  etc.), marcando aparte los empates de bucket sexo+edad sin inventar una transición.
+- **Inactividad y jubilación**: quien pasa a inactivo sale del denominador (activo =
+  `ESTADO∈{1,2}`). Jubilados se separan con `CAT_INAC` (códigos INDEC: 1=jubilado/
+  pensionado, 2=rentista, 3=estudiante, 4=ama de casa, 5=menor de 6, 6=discapacitado,
+  7=otros) -- **[confirmado]** existe en los 86 trimestres de `01_armonizado/individual`,
+  distribución estable entre 2005T2 y 2023T4 (no cubierto por el codebook en la era
+  histórica, mismo límite que el resto de `ESQUEMA_NUCLEO`). Se trae desde
+  `01_armonizado` directamente en el notebook 06 (mismo patrón que `NIVEL_ED`) -- **no**
+  se agrega a `ESQUEMA_NUCLEO`, para no invalidar el esquema núcleo ni tener que
+  re-correr 01b → 02 → 04 por una variable que solo usa esta sección.
+- **Independientes**: **PENDIENTE de decisión** -- 3 opciones (tratar como informal /
+  categoría propia fuera del cálculo / excluir del denominador), cualquiera mueve
+  ~31% de los hogares con algún activo (**[confirmado]** 31.1% histórica, 31.3%
+  regular).
+- **Reporte**: estratificado por `n_activos_t` (1, 2, 3+). Techo declarado: un hogar con
+  `share_t==1.0` no puede "intensificar" bajo esta definición (ya está en el máximo) --
+  asimetría real de la medida, no se corrige.
+- **Población de partida** -- **[confirmado, número real]** hogares con
+  `identidad_confirmada==True` y ≥1 activo estable: 241,033 (h=1 histórica) / 188,131
+  (h=1 regular) / 184,587 (h=4 histórica) / 152,419 (h=4 regular) -- 74%-79% de los
+  pares con identidad confirmada.
+- **Código**: función nueva en `src/` (nombre propuesto `src/intensificacion.py`, a
+  confirmar) con tests (`tests/test_intensificacion.py`), incluido un test de que una
+  alta o baja de un integrante no cambia el `share_precario` de quienes siguen. Reusa
+  `src/bootstrap.py` (mismo mecanismo que "salida"), misma estratificación/
+  estandarización por decil. CSV nuevos `riesgo_caida_*.csv`.
+
+**PENDIENTE**: tratamiento de independientes; medir en la implementación la frecuencia
+real de empates de bucket sexo+edad antes de fijar cómo tratarlos; si se extraen a
+`src/` las 4 funciones duplicadas en 03/05/06 junto con este módulo nuevo (no
+bloqueante). No se implementa en esta entrada -- queda para la siguiente ronda de "plan
+mode antes de implementar".
+
+## D17 (2026-10-03) — Coeficiente de Gini del IPCF: descripción ahora, contexto de aglomerado-trimestre si entra al modelo
+
+Se agrega una medida de desigualdad de la **distribución completa** del ingreso per cápita
+familiar, que hasta ahora no estaba: las secciones previas del notebook 05 miden cuántos
+hogares de cada quintil tienen déficit, no cuán desigual es el reparto. Implementada en
+`src/desigualdad.py` (+ `tests/test_desigualdad.py`) y en la sección 7-9 del notebook 05.
+Salidas: `data/meta/gini_trimestre.csv` (602 filas = 86 trimestres × nacional + 6 regiones),
+`data/meta/gini_aglomerado.csv` (2.716 filas de aglomerado × trimestre) y
+`data/meta/gini_validacion_indec.csv`. Insumo versionado nuevo:
+`data/gini_indec_publicado.csv`.
+
+**Diseño**:
+- **Unidad: personas.** El `IPCF` es del hogar y se le asigna a cada integrante — es la
+  definición del indicador oficial ("Gini del ingreso per cápita familiar **de las
+  personas**").
+- **Ponderador por era (D3)**: `PONDIH × integrantes` en la era regular y **suma de
+  `PONDERA`** de los integrantes en la histórica, donde `PONDIH` no existe (aparece en
+  2016T2, ver abajo). **[confirmado]** el `PONDIH` del hogar es idéntico al individual en el
+  100,0000% de las filas (4 trimestres regulares verificados), así que multiplicar por la
+  cantidad de integrantes es exacto, no una aproximación; el estimador usado es invariante a
+  replicación (test `test_peso_dos_equivale_a_duplicar_la_fila`), que es lo que permite
+  agregar a nivel hogar sin sesgo.
+- **Sin deflactar**: el Gini es invariante a escala (test `test_invariante_a_escala`), así
+  que el IPC intervenido de 2007-2015 no entra en este cálculo.
+- **`IPCF == 0` queda adentro** de la distribución (D3: no es criterio de "sin ingreso"). En
+  la era regular los no declarantes salen solos, por llegar con `PONDIH == 0`.
+- **IC95% por bootstrap de cluster = vivienda** (`CODUSU+AGLOMERADO`, pesos Poisson(1),
+  400 réplicas): las personas de un hogar comparten el `IPCF` exacto y los hogares de una
+  misma vivienda comparten entrevista y entorno.
+
+**[confirmado] Cobertura de `PONDIH`**: existe en 39 trimestres, 2016T2-2025T4, que son
+exactamente los 39 trimestres publicados desde 2016T2 — ninguno falta (2016T1 no está
+publicado; el hueco de la serie es 2015T3-2016T1).
+
+**[confirmado] Validación contra la serie oficial**: `data/gini_indec_publicado.csv` trae la
+serie del INDEC bajada de la API de Series de Tiempo de datos.gob.ar (serie
+`65.1_CGI_0_0_21`, 2003T3-2026T1), con valores nulos exactamente en los 4 trimestres sin
+microdato publicado (2007T3, 2015T3-2016T1). 20 de esos valores se verificaron a mano contra
+el Cuadro 2.2 y el texto de los informes de prensa (2T2018, 4T2020, 2T2026) y coinciden al
+dígito. Resultado de la comparación: **80 de 86 trimestres coinciden dentro del redondeo del
+INDEC a 3 decimales** (|dif| ≤ 0,0005); de los 6 restantes, 5 quedan en 0,0006-0,0009. Por
+eso no se usó ninguna fuente secundaria (SEDLAC/CEDLAS, que estaba prevista como chequeo de
+tendencia pre-2016): la serie oficial cubre también la era histórica y hace innecesario el
+sustituto.
+
+**Lo que la validación no dice**: que el número reproduzca al publicado no valida la calidad
+del dato de 2007-2015 — el INDEC de esos años es la misma fuente intervenida. Valida que el
+cálculo (universo, ponderador, tratamiento de ceros y de no declarantes) es el oficial. El
+período intervenido se marca en los gráficos (banda rayada 2007T1-2015T2) y en los CSV
+(`periodo_intervenido`), igual que el quiebre de 2016T2 y el operativo telefónico de 2020T2.
+
+**[inferido] Anomalía de 2016T3**: único trimestre con diferencia apreciable contra el
+publicado (0,4466 calculado vs. 0,451 publicado, −0,0044). En los microdatos no hay nada
+raro (32 aglomerados, 18.800 hogares, y dos rutas de cálculo independientes — por hogar y
+por individuo — dan el mismo 0,4466), y el 0,451 aparece tanto en el gráfico 1 del informe
+2T2018 como en la serie de la API. Hipótesis sin confirmar: la base de ese trimestre se
+revisó después de publicado el indicador, y el microdato cacheado es la versión actual, no
+la que generó el 0,451. Queda registrada, no corregida.
+
+**[confirmado] El quiebre de 2016 (D3) en esta serie**: el nivel se mueve poco — promedio
+de los trimestres publicados de 0,4149 (2015, dos trimestres) a 0,4340 (2016, tres
+trimestres), +0,0191; y si se deja afuera el 2016T3 anómalo de más arriba, +0,0128 — pero
+**el universo no es el mismo**: en la
+era regular queda fuera de la distribución entre el 14,8% y el 27,6% de las personas
+(promedio 21,6%), los no declarantes con `PONDIH == 0`, mientras que en la histórica esa
+población está adentro con ingreso imputado. El cambio de ponderador, sobre los mismos
+respondentes, aporta solo +0,0081 en promedio. **Trampa de replicación a evitar**: usar
+`PONDERA` sobre *todas* las personas de la era regular (sin excluir a los no declarantes,
+que vienen con `IPCF = 0`) da un Gini de 0,579-0,649 (promedio 0,610) en vez de 0,413-0,467
+— no es un dato, es el artefacto de contar como ingreso cero una no respuesta. La
+comparación de niveles entre eras lleva reserva; no se interpreta el salto de 2016 como
+cambio real de desigualdad.
+
+**[confirmado] Niveles de la serie nacional**: era histórica 0,5339 (2003T3) → 0,4094
+(2015T2); era regular 0,4129-0,4674.
+
+**[confirmado] Ruido y por qué el aglomerado va en año móvil**: ancho del IC95% (en puntos
+porcentuales de Gini, mediana sobre la serie) = **2,05 pp nacional**, **3,18 pp por región**,
+**6,09 pp por aglomerado-trimestre** (p90 9,06; en la auditoría previa, con cluster de hogar
+y un solo trimestre, se midieron casos de hasta 18 pp) y **3,81 pp por aglomerado en año
+móvil** (p90 5,55). Contra 1-3 pp de diferencia nacional entre trimestres, la serie
+trimestral por aglomerado no es legible: la que se lee y se grafica es la de la ventana
+`t-3..t`, y la trimestral queda en el CSV con su propio IC para que el ruido sea verificable.
+Piso de `MIN_HOGARES_AGLOMERADO = 400` hogares por ventana: deja 38 de 2.716 celdas sin
+valor, con el motivo escrito en `motivo_na`. 2.437 de las 2.716 ventanas tienen los 4
+trimestres completos (el resto baja por los huecos de publicación y por el borde inicial de
+la serie).
+
+**[confirmado] La ventana recupera aglomerados con cobertura incompleta**: 17 de las 2.716
+filas de `gini_aglomerado.csv` tienen `n_trimestres_aglomerado < n_trimestres_ventana` (dos
+contadores distintos en el CSV: trimestres publicados en la ventana vs. trimestres en los
+que ese aglomerado efectivamente aparece), por dos motivos distintos:
+- los aglomerados 38, 91 y 93, agregados recién en 2006T3 (quiebre de cobertura geográfica,
+  ver CLAUDE.md — no tiene entrada propia en este log), aparecen con menos de 4 en las
+  ventanas que todavía incluyen 2006T2 o anterior (9 filas: ventanas que terminan en
+  2006T3/T4/2007T1);
+- los aglomerados 8 y 31, que faltan puntualmente en 2019T3 y 2020T3 (D1), aparecen con 3 en
+  las 4 ventanas que tocan ese trimestre (8 filas).
+
+De esas 17, solo **2** (las ventanas que *terminan* justo en el trimestre faltante) quedan
+con `gini_trimestral` nulo — las otras 15 sí tienen dato trimestral propio, lo que cambia es
+que la ventana que las acompaña tiene un trimestre menos de respaldo. Es deseable para una
+serie de contexto (no se descarta el aglomerado por un hueco ajeno), pero hay que saber que
+en esas filas el año móvil no está construido sobre 4 trimestres completos de ese
+aglomerado.
+
+**[confirmado] Normalización de la ventana**: antes de juntar los 4 trimestres, el `IPCF` de
+cada hogar se divide por la media ponderada **nacional de su propio trimestre** (mismo
+ponderador por era). Sin eso, la inflación entre los trimestres de la ventana se cuela como
+dispersión e infla el Gini (test
+`test_ventana_de_dos_trimestres_con_inflacion`: dos copias de una distribución, una escalada
+por `k`, normalizadas y concatenadas, dan exactamente el Gini de la original; sin normalizar
+dan más). Consecuencia al leer esa serie: queda en unidades del ingreso medio nacional de
+cada trimestre, así que también neutraliza los cambios *reales* del nivel medio nacional —
+es lo buscado acá (dispersión interna del aglomerado), no un efecto colateral. **No cambia**
+el Gini trimestral nacional, regional ni por aglomerado, que se calculan sobre el `IPCF` sin
+normalizar (invariancia de escala). **[confirmado, calendario]** ninguna ventana mezcla eras:
+el hueco 2015T3-2016T1 cae exactamente sobre el quiebre, así que el chequeo de era que trae
+el código nunca se dispara con la serie actual (se deja igual, defensivo).
+
+**[inferido] Límite del IC**: el bootstrap de vivienda **no reproduce el diseño muestral
+real de la EPH** — los estratos y las UPM no están publicados en los microdatos. El IC hay
+que leerlo como **piso** del error, probablemente optimista; no sirve para un test formal
+entre aglomerados.
+
+**Regla si el Gini entra al modelo** (hoy no entra, esto es descripción): entra como
+**contexto de aglomerado-trimestre en `t`**, con la versión de año móvil `t-3..t` —
+nunca una ventana que incluya `t+1..t+h`, para no filtrar futuro en un problema cuyo
+resultado se mide en `t+h`. Y se evalúa con **ablación** (modelo con y sin el feature,
+delta reportado): no se asume que aporta por ser teóricamente relevante.
+
+**PENDIENTE**: Gini de `P21` entre ocupados, separado formal/informal (era el punto 5 de la
+propuesta original, postergado por decisión de Iván). No implementado en esta entrada.
+
+## D18 (2026-10-04) — `nivel_ed_jefe`/`edad_jefe` con `jefe_ambiguo`: dos políticas distintas conviviendo, PENDIENTE de confirmación de Iván
+
+Al generalizar `calcular_info_jefe` (duplicada en 03/04/05, ver auditoría de modularización
+de notebooks) para moverla a `src/perfil_hogar.py`, aparece una inconsistencia real entre
+notebooks sobre el mismo campo, no introducida por la generalización sino preexistente:
+
+- **03/04**: si `jefe_ambiguo=True` (0 o más de 1 persona con `CH03==1` en el hogar), se
+  anulan `condicion_actividad_jefe` y `sexo_jefe`, pero **no** `nivel_ed_jefe`. Para el caso
+  "más de 1 jefe/a" (`drop_duplicates` se queda con el primero), `nivel_ed_jefe` conserva un
+  valor real, no `NA`. Ambas notebooks usan después `bucket_nivel_ed(hogar["nivel_ed_jefe"])`
+  sin filtrar por `jefe_ambiguo` -- ese valor "real pero arbitrario" entra en los indicadores
+  (03 Parte E, 04 Sección 4 de selectividad).
+- **05**: si `jefe_ambiguo=True`, se anulan `nivel_ed_jefe` **y** `edad_jefe`. También usa
+  `bucket_nivel_ed(info_jefe["nivel_ed_jefe"])` después (sección de los 12 indicadores), pero
+  ahí el caso ambiguo sí llega como `NA`.
+
+**[confirmado]** esto no es un error de copiado -- las tres funciones son deliberadamente
+distintas en qué campos anulan, no solo distinto código para el mismo resultado. Unificarlas
+en una sola función exige elegir una política para `nivel_ed_jefe`/`edad_jefe`, y cualquiera
+de las dos cambia resultados ya calculados (03/04 pasarían a dar `NA` donde hoy dan un valor
+real; o 05 pasaría a dar un valor real donde hoy da `NA`) -- no es un refactor neutro.
+
+**Decisión de Iván (2026-10-04)**: no tocar `calcular_info_jefe` todavía -- quedan las 3
+copias como están (en 03/04/05, no en `src/`) hasta que se resuelva cuál política es la
+correcta. `calcular_grupo_ingreso`, `calcular_situacion_laboral`, `calcular_decil`,
+`bucket_nivel_ed`, `to_bool`, `kleene_any_hogar` y `calcular_componentes_ancla` sí se
+generalizaron a `src/perfil_hogar.py` en esta misma pasada -- ninguna tenía este problema
+(lógica idéntica entre copias, o un subconjunto estricto de columnas con la misma fórmula).
+
+**PENDIENTE**: decidir la política de `jefe_ambiguo` para `nivel_ed_jefe`/`edad_jefe` y
+generalizar `calcular_info_jefe`.

@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 
 from tipado_nucleo import (
-    ESQUEMA_NUCLEO,
     detectar_formato_decimal,
     ingreso_no_declarado,
     parsear_entero_con_blancos,
@@ -119,21 +118,15 @@ class TestTiparVariable:
         df = pd.DataFrame({"DECCFR": ["01"]})
         assert tipar_variable(df, "DECCFR").iloc[0] == 1
 
-    def test_variable_desconocida_levanta_keyerror(self):
-        with pytest.raises(KeyError):
-            tipar_variable(pd.DataFrame({"X": [1]}), "X")
-
-
-class TestNivelEd:
-    def test_en_esquema_como_individual_entero_directo(self):
-        assert ESQUEMA_NUCLEO["NIVEL_ED"]["base"] == "individual"
-        assert ESQUEMA_NUCLEO["NIVEL_ED"]["regla_parseo"] == "entero_directo"
-
-    def test_tipar_variable_dispatch(self):
+    def test_dispatch_entero_directo(self):
         df = pd.DataFrame({"NIVEL_ED": [4]})
         resultado = tipar_variable(df, "NIVEL_ED")
         assert str(resultado.dtype) == "Int8"
         assert resultado.iloc[0] == 4
+
+    def test_variable_desconocida_levanta_keyerror(self):
+        with pytest.raises(KeyError):
+            tipar_variable(pd.DataFrame({"X": [1]}), "X")
 
 
 class TestIngresoNoDeclarado:

@@ -1,0 +1,4 @@
+anio,trimestre,era,gini_calculado,gini_indec,serie_id,verificado_informe_prensa,diferencia
+2023,4,regular,0.4353,0.435,65.1_CGI_0_0_21,True,0.0003
+2024,1,regular,0.4674,0.467,65.1_CGI_0_0_21,True,0.0004
+2025,2,regular,0.424,0.424,65.1_CGI_0_0_21,True,0.0

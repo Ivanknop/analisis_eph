@@ -23,3 +23,5 @@ notebook,fecha_hora,commit_git,parametros_json,n_trimestres_procesados,n_filas_e
 06_poblacion_riesgo,2026-10-01T14:22:33,ecfb55b,"{""TRIMESTRES"": null}",86,1458644,37.7
 06_poblacion_riesgo,2026-10-01T14:24:37,ecfb55b,"{""TRIMESTRES"": null}",86,1458644,37.0
 06_poblacion_riesgo,2026-10-01T18:09:09,ecfb55b,"{""TRIMESTRES"": null}",86,1458644,81.7
+05_composicion_quintiles,2026-10-03T22:57:30,ec09a49,"{""TRIMESTRES"": null, ""GUARDAR_FIGURAS"": true, ""N_BOOT_GINI"": 400}",86,1458644,755.1
+05_composicion_quintiles,2026-10-03T23:19:36,ec09a49,"{""TRIMESTRES"": null, ""GUARDAR_FIGURAS"": true, ""N_BOOT_GINI"": 400}",86,1458644,708.8

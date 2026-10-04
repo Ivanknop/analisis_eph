@@ -101,3 +101,42 @@ def actualizar_resumen_trimestre(archivo: Path, filas_nuevas: list[dict],
         df_final = df_nuevas
     df_final = df_final.sort_values(list(claves)).reset_index(drop=True)
     df_final.to_csv(archivo, index=False)
+
+def cargar_hogar(anio: int, trimestre: int, columnas: list[str], ruta_nucleo: Path) -> pd.DataFrame | None:
+    """Lee la partición `hogar` de `ruta_nucleo` (ej. `data/02_nucleo`) y se queda
+    solo con las `columnas` pedidas que existan -- `None` si la partición no existe.
+    Uso general: reemplaza la función local `cargar_hogar` que las notebooks 03/04/05/06
+    tenían duplicada cada una con su propia lista de columnas."""
+    p = ruta_particion(ruta_nucleo, "hogar", anio, trimestre)
+    if not p.exists():
+        return None
+    df = pd.read_parquet(p)
+    return df[[c for c in columnas if c in df.columns]].copy()
+
+
+def cargar_individual(
+    anio: int, trimestre: int, columnas: list[str],
+    ruta_nucleo: Path, ruta_armonizado: Path | None = None,
+) -> pd.DataFrame | None:
+    """Lee la partición `individual` de `ruta_nucleo`, igual que `cargar_hogar`. Si se
+    pasa `ruta_armonizado` (ej. `data/01_armonizado`), además mergea `NIVEL_ED` desde esa
+    capa -- todavía no está en `ESQUEMA_NUCLEO` de una corrida real. `ruta_armonizado=None`
+    omite el merge (ej. 06_poblacion_riesgo, que no usa `nivel_ed`).
+
+    Uso general: reemplaza la función local `cargar_individual` que las notebooks
+    03/04/05/06 tenían duplicada cada una, idéntica salvo la lista de columnas."""
+    p = ruta_particion(ruta_nucleo, "individual", anio, trimestre)
+    if not p.exists():
+        return None
+    df = pd.read_parquet(p)
+    ind = df[[c for c in columnas if c in df.columns]].copy()
+    if ruta_armonizado is None:
+        return ind
+    pa = ruta_particion(ruta_armonizado, "individual", anio, trimestre)
+    if pa.exists():
+        arm = pd.read_parquet(pa, columns=["CODUSU", "NRO_HOGAR", "COMPONENTE", "NIVEL_ED"])
+        arm["NIVEL_ED"] = pd.to_numeric(arm["NIVEL_ED"], errors="coerce").astype("Int8")
+        ind = ind.merge(arm, on=["CODUSU", "NRO_HOGAR", "COMPONENTE"], how="left")
+    else:
+        ind["NIVEL_ED"] = pd.array([pd.NA] * len(ind), dtype="Int8")
+    return ind

@@ -4,12 +4,36 @@ TFI de la Especialización en Inteligencia de Datos (UNLP). Propuesta en definic
 
 ## Pregunta
 
-¿Qué hogares tienen mayor riesgo de empeorar su situación de ingresos o laboral entre una observación y la
-siguiente, a un trimestre y a un año? ¿Cambian los factores que lo predicen según el horizonte y según el
-contexto político (fase del mandato presidencial, alineación provincia–Nación)?
+¿Qué tan probable es que un hogar **caiga en mayor informalidad laboral, o no logre salir de ella**, entre una
+observación y la siguiente (a un trimestre y a un año), según su **quintil de ingreso** y sus **condiciones
+habitacionales**?
 
-El objetivo es un sistema de alerta temprana basado en el panel de hogares de la Encuesta Permanente de
+Dicho de otro modo: ¿quien vive en condiciones habitacionales deficitarias tiene más dificultad para salir de
+la precariedad laboral, y más riesgo de caer en ella, que un hogar del mismo quintil sin ese déficit?
+
+El objetivo es un sistema de alerta temprana a nivel hogar, basado en el panel de la Encuesta Permanente de
 Hogares (EPH) continua.
+
+### Eje del análisis
+
+- **Unidad**: el hogar comparado consigo mismo entre `t` y `t+h` (`h=1` y `h=4`, los que permite la rotación
+  2-2-2 del panel).
+- **Resultado a predecir**, en dos direcciones:
+  - **Permanencia**: hogares con activos y sin empleo formal en `t` que siguen igual en `t+h` (no salen).
+  - **Caída**: hogares con algún empleo formal en `t` que lo pierden en `t+h` (pasan a informalidad,
+    independiente o sin ocupados).
+- **Estratificadores principales**: quintil/decil de ingreso per cápita (`DECCFR`) y el ancla habitacional
+  (`ancla_con_deficit`: hacinamiento, materiales, condiciones sanitarias). La vivienda varía poco entre
+  visitas, por eso funciona como ancla y predictor, no como resultado.
+- **Ingreso**: entra como posición en `t` (quintil/decil) y como eje complementario de la etiqueta; la
+  definición final de la población en riesgo está abierta (ver D14 y D15 en `docs/decisiones_metodologicas.md`).
+
+### Qué es contexto, no eje
+
+El mandato presidencial (y, eventualmente, la alineación provincia–Nación) es **una variable de contexto más**:
+se usa para describir el período y se evaluará al final como feature candidata (con y sin ella), no organiza
+el análisis. Con 6 mandatos en la serie, cualquier comparación entre ellos es descriptiva. Las secciones por
+mandato de los notebooks 02 y 05 quedan como descripción de contexto (ver D15).
 
 ## Fuente de datos
 
@@ -61,6 +85,21 @@ Las notebooks se corren en orden: cada una lee la capa que escribió la anterior
 | `01_ingesta_armonizacion` | `data/eph_cache/` | `data/01_armonizado/`, `inventario_variables.csv`, `flags_trimestre.csv` |
 | `01b_capa_tipada_nucleo` | `data/01_armonizado/` | `data/02_nucleo/`, `formato_decimal_monetario.csv`, `p21_series_trimestral.csv` |
 | `02_panel_hogares` | `data/02_nucleo/` | `data/03_panel/pares_h1/`, `data/03_panel/pares_h4/`, `panel_resumen_pares.csv` |
+| `03_exploracion_descriptiva` | `data/02_nucleo/`, `data/03_panel/` | `quintiles_*.csv`, `ancla_habitacional_estabilidad.csv`, `condiciones_vida_*.csv` (transiciones laborales por quintil × ancla) |
+| `04_trayectorias` | `data/03_panel/` | `data/04_trayectorias/`, `trayectorias_*.csv` |
+| `05_composicion_quintiles` | `data/02_nucleo/` | `composicion_quintiles_*.csv` (contexto descriptivo, transversal) |
+| `06_poblacion_riesgo` | `data/02_nucleo/`, `data/03_panel/`, `data/04_trayectorias/` | `riesgo_*.csv` (población en riesgo y salida, por quintil/decil × ancla) |
+
+Dónde está cada parte de la pregunta:
+
+| Pieza | Notebook | Salida principal |
+|---|---|---|
+| Ancla habitacional (definición y estabilidad entre visitas) | 03, Parte E | `ancla_habitacional_estabilidad.csv` |
+| Caída desde empleo formal y salida de la informalidad, por quintil × ancla | 03, Parte E | `condiciones_vida_transiciones.csv`, `condiciones_vida_resumen_deficit.csv` |
+| Población en riesgo y tasa de salida (3 definiciones candidatas) | 06 | `riesgo_salida_trimestre.csv`, `riesgo_salida_ancla_bootstrap.csv` |
+| Brecha por ancla dentro de cada decil (no solo composición) | 06, Sección 3 | `riesgo_salida_ancla_por_decil.csv`, `riesgo_salida_ancla_estandarizada.csv` |
+| Salida sostenida (trayectorias de 4 apariciones) | 04 + 06, Sección 2c | `riesgo_salida_estricta.csv` |
+| Contexto por trimestre y mandato | 02 (resumen), 05 | `panel_resumen_final.csv`, `composicion_quintiles_*.csv` |
 
 Los CSV se escriben en `data/meta/`.
 
@@ -74,8 +113,3 @@ Los CSV se escriben en `data/meta/`.
 
 `notebooks/00_explorar.ipynb` es de solo lectura: arma vistas DuckDB sobre las capas ya escritas para
 explorar sin volver a correr el pipeline.
-
-## Estado
-
-Pipeline de datos y panel de hogares construidos. En curso: definición de la variable a predecir y
-revisión bibliográfica.
