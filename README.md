@@ -104,8 +104,12 @@ Dónde está cada parte de la pregunta:
 
 Los CSV se escriben en `data/meta/`.
 
-- **Qué se versiona:** los Parquet de `data/0N_*/` se regeneran y no se versionan. Los CSV de `data/meta/` son
-  chicos, documentan resultados y sí se versionan.
+- **Qué se versiona:** los Parquet de las capas numeradas (`data/0N_*/`, `data/0Nx_*/`) y la mayoría de los CSV
+  descriptivos de `data/meta/` **no** se versionan — se regeneran corriendo `scripts/regenerar.sh`. Sí se
+  versionan: los logs/trazabilidad del pipeline (`corridas.csv`, `manifiesto_insumos.csv`, `resumen_0N_*.csv`,
+  `flags_trimestre.csv`, `inventario_variables.csv`, `formato_decimal_monetario.csv`,
+  `p21_series_trimestral.csv`) y los insumos externos chicos que no se pueden reconstruir corriendo código del
+  repo (`data/canastas_indec/`, `data/gini_indec_publicado.csv`).
 - **Parámetros:** cada notebook acepta `TRIMESTRES` (subconjunto opcional) y `REHACER` (por defecto `False`:
   reprocesa solo lo que falta o está desactualizado). La primera corrida completa tarda unos 10 minutos,
   sobre todo por el parseo de las bases históricas.

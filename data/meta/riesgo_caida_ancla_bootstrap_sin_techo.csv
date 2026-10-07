@@ -1,9 +1,0 @@
-h,tratamiento,tasa_con_deficit,tasa_sin_deficit,diferencia,diferencia_ic95_low,diferencia_ic95_high,n_con_deficit,n_sin_deficit,n_clusters
-1,informal,14.67,9.24,5.44,4.62,6.21,8233,245694,185438
-1,categoria_propia,18.87,9.94,8.94,8.33,9.61,14289,335213,253060
-1,excluir,14.85,8.79,6.06,5.33,6.82,8081,241626,182228
-1,cuenta_propia_precario,17.0,11.32,5.69,4.83,6.43,8687,262020,198301
-4,informal,18.03,11.4,6.64,5.69,7.77,6066,191895,132835
-4,categoria_propia,20.74,11.29,9.46,8.64,10.29,10809,263301,183477
-4,excluir,16.78,10.17,6.61,5.51,7.62,5851,187262,129485
-4,cuenta_propia_precario,20.64,13.37,7.27,6.16,8.24,6430,205048,142777

@@ -21,6 +21,11 @@ from intensificacion import calcular_share_precario, emparejar_activos
 
 REPO = Path(__file__).resolve().parents[1]
 
+# (anio, trimestre) -> n_precario_b publicado en notebooks/06_poblacion_riesgo.ipynb
+# (D14, data/meta/riesgo_poblacion_trimestre.csv -- ya no versionado, se regenera
+# corriendo ese notebook; horneado acá para no depender del archivo).
+REFERENCIA_RIESGO_POBLACION_B = {(2010, 2): 6015, (2018, 2): 6148, (2023, 4): 5631}
+
 
 def _individual(filas):
     columnas = ["CODUSU", "NRO_HOGAR", "COMPONENTE", "CH04", "CH06", "ESTADO", "CAT_OCUP", "PP07H"]
@@ -241,18 +246,14 @@ class TestCalcularPersistencia:
     ])
     def test_poblacion_coincide_con_riesgo_poblacion_trimestre(self, anio, trimestre):
         # Regresión: duplicar activos_sin_empleo_formal fuera de la notebook 06 no
-        # puede introducir una diferencia contra el número ya publicado y
-        # confirmado en D14 (data/meta/riesgo_poblacion_trimestre.csv) -- en
-        # ninguna de las eras/cuestionarios (D2) que cubre esa tabla.
-        publicado = pd.read_csv(REPO / "data" / "meta" / "riesgo_poblacion_trimestre.csv")
-        fila_publicada = publicado[(publicado["anio"] == anio) & (publicado["trimestre"] == trimestre)].iloc[0]
-
+        # puede introducir una diferencia contra el número ya publicado (D14) --
+        # en ninguna de las eras/cuestionarios (D2) que cubre esa tabla.
         hogar = pd.read_parquet(REPO / "data" / "02_nucleo" / "hogar" / f"ANO4={anio}" / f"TRIMESTRE={trimestre}" / "data.parquet")
         individual = pd.read_parquet(
             REPO / "data" / "02_nucleo" / "individual" / f"ANO4={anio}" / f"TRIMESTRE={trimestre}" / "data.parquet")
         idx = pd.MultiIndex.from_frame(hogar[["CODUSU", "NRO_HOGAR"]])
         n_precario_b = int((activos_sin_empleo_formal(individual, idx) == True).sum())  # noqa: E712
-        assert n_precario_b == int(fila_publicada["n_precario_b"])
+        assert n_precario_b == REFERENCIA_RIESGO_POBLACION_B[(anio, trimestre)]
 
 
 class TestClasificarFold:
