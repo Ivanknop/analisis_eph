@@ -25,3 +25,25 @@ notebook,fecha_hora,commit_git,parametros_json,n_trimestres_procesados,n_filas_e
 06_poblacion_riesgo,2026-10-01T18:09:09,ecfb55b,"{""TRIMESTRES"": null}",86,1458644,81.7
 05_composicion_quintiles,2026-10-03T22:57:30,ec09a49,"{""TRIMESTRES"": null, ""GUARDAR_FIGURAS"": true, ""N_BOOT_GINI"": 400}",86,1458644,755.1
 05_composicion_quintiles,2026-10-03T23:19:36,ec09a49,"{""TRIMESTRES"": null, ""GUARDAR_FIGURAS"": true, ""N_BOOT_GINI"": 400}",86,1458644,708.8
+06_poblacion_riesgo,2026-10-04T23:46:21,994a4b5,"{""TRIMESTRES"": null}",86,1458644,78.1
+06_poblacion_riesgo_intensificacion,2026-10-04T23:52:34,994a4b5,"{""TRIMESTRES"": null}",86,2995119,451.0
+06_poblacion_riesgo,2026-10-05T00:19:32,994a4b5,"{""TRIMESTRES"": null}",86,1458644,71.5
+06_poblacion_riesgo_intensificacion,2026-10-05T00:27:00,994a4b5,"{""TRIMESTRES"": null}",86,3993492,520.2
+06_poblacion_riesgo,2026-10-05T01:02:56,994a4b5,"{""TRIMESTRES"": null}",86,1458644,77.9
+06_poblacion_riesgo_intensificacion,2026-10-05T01:10:34,994a4b5,"{""TRIMESTRES"": null}",86,3993492,536.1
+07_cascada_targets_cascada,2026-10-05T18:01:19,994a4b5,"{""TRIMESTRES"": null, ""REHACER"": false}",86,688,9.0
+07_cascada_targets_frecuencias_folds,2026-10-05T18:02:08,994a4b5,"{""TRIMESTRES"": null}",86,13318,49.2
+07_cascada_targets_cascada,2026-10-05T18:34:11,994a4b5,"{""TRIMESTRES"": null, ""REHACER"": true}",86,688,400.0
+07_cascada_targets_frecuencias_folds,2026-10-05T18:34:59,994a4b5,"{""TRIMESTRES"": null}",86,13360,47.7
+07_cascada_targets_cascada,2026-10-05T19:11:58,994a4b5,"{""TRIMESTRES"": null, ""REHACER"": false}",86,688,8.9
+07_cascada_targets_frecuencias_folds,2026-10-05T19:12:44,994a4b5,"{""TRIMESTRES"": null}",86,13360,45.6
+08_linea_pobreza,2026-10-06T19:51:16,994a4b5,"{""TRIMESTRES"": null, ""REHACER"": false, ""metodos_ventana"": [""a_mismo_trimestre"", ""b_un_mes_atras""]}",39,1333098,12.6
+08_linea_pobreza,2026-10-06T20:06:22,994a4b5,"{""TRIMESTRES"": null, ""REHACER"": false, ""metodos_ventana"": [""a_mismo_trimestre"", ""b_un_mes_atras""]}",39,1333098,0.3
+08_linea_pobreza_metodo_final,2026-10-06T20:06:35,994a4b5,"{""metodo_ventana"": ""a_mismo_trimestre"", ""TRIMESTRES"": null}",39,666549,12.6
+08_linea_pobreza,2026-10-06T20:16:58,994a4b5,"{""metodo_ventana_final"": ""a_mismo_trimestre"", ""TRIMESTRES"": null}",39,666549,12.6
+08_linea_pobreza,2026-10-06T20:17:30,994a4b5,"{""metodo_ventana_final"": ""a_mismo_trimestre"", ""TRIMESTRES"": null}",39,666549,12.9
+08_distancia_linea_pobreza,2026-10-07T01:08:23,994a4b5,"{""metodo_ventana_final"": ""a_mismo_trimestre"", ""TRIMESTRES"": null}",39,666549,13.5
+08_distancia_linea_pobreza,2026-10-07T01:09:06,994a4b5,"{""metodo_ventana_final"": ""a_mismo_trimestre"", ""TRIMESTRES"": null}",39,666549,16.7
+09_trayectorias_distancia,2026-10-07T01:17:28,994a4b5,"{""era"": ""regional_2016""}",73,513173,15.4
+09_trayectorias_distancia,2026-10-07T01:23:49,994a4b5,"{""era"": ""regional_2016""}",73,513173,15.3
+09_trayectorias_distancia,2026-10-07T01:49:21,994a4b5,"{""era"": ""regional_2016""}",73,513173,24.0

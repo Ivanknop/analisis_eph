@@ -1,6 +1,5 @@
-"""Capa tipada de variables núcleo (ingresos, empleo, vivienda, estrategias del
-hogar) sobre el Parquet ya armonizado del notebook 01. No toca `data/eph_cache/`
-ni re-lee DBF, ni recodifica valores especiales (-9, 9, 0 "no corresponde").
+"""Capa tipada de variables núcleo (ingresos, empleo, vivienda, estrategias
+del hogar) sobre el Parquet ya armonizado del notebook 01.
 """
 # Ver `ESQUEMA_NUCLEO` para los códigos especiales documentados por variable,
 # citando la fuente (codebook `data/EPH_tot_urbano_estructura_bases_2025.pdf`
@@ -125,9 +124,8 @@ for _v in _V_INDIVIDUAL_M:
 
 
 def hash_esquema() -> str:
-    """Hash estable de `ESQUEMA_NUCLEO` -- cambia si se agrega/quita/redefine
-    una variable. Sirve para detectar, en `data/meta/resumen_02_nucleo.csv`,
-    con qué versión del esquema se tipó cada partición."""
+    """Hash estable de `ESQUEMA_NUCLEO`, para registrar en
+    `data/meta/resumen_02_nucleo.csv` con qué versión se tipó cada partición."""
     # Ordena las claves antes de hashear: el orden de iteración de un dict no
     # está garantizado entre procesos/versiones de Python, y sin ordenar el
     # hash no sería reproducible. Complementa a `particion_desactualizada`
@@ -189,9 +187,8 @@ def tipar_variable(df: pd.DataFrame, variable: str) -> pd.Series:
 
 def reporte_no_parseables(serie_original: pd.Series, serie_tipada: pd.Series,
                            anio: int, trimestre: int, tipo: str, variable: str) -> list[dict]:
-    """Valores no-nulos en el original que quedaron nulos tras tipar (falló el
-    parseo, no es un nulo legítimo) -- agrupado por valor original, no fila por
-    fila. Nunca se imputa ni se descarta en silencio: esto es lo que se reporta."""
+    """Valores no-nulos en el original que quedaron nulos tras tipar (falló
+    el parseo), agrupados por valor original -- nunca se imputan en silencio."""
     original_no_nulo = serie_original.notna() & (serie_original.astype(str).str.strip() != "")
     fallo = original_no_nulo & serie_tipada.isna()
     if not fallo.any():
@@ -205,9 +202,8 @@ def reporte_no_parseables(serie_original: pd.Series, serie_tipada: pd.Series,
 
 
 def ingreso_no_declarado(hogar_df: pd.DataFrame, es_historico: bool) -> pd.Series:
-    """`PONDIH == 0` en era regular (incluye `DECCFR == 12` y los casos de decil
-    nulo con PONDIH=0, ver diagnóstico de la sección "Flag ingreso_no_declarado").
-    `NA` en toda la era histórica -- no hay `PONDIH` de hogar antes de 2016."""
+    """`PONDIH == 0` en era regular (D3). `NA` en toda la era histórica --
+    no hay `PONDIH` de hogar antes de 2016."""
     if es_historico or "PONDIH" not in hogar_df.columns:
         return pd.Series(pd.NA, index=hogar_df.index, dtype="boolean")
     pondih = pd.to_numeric(hogar_df["PONDIH"], errors="coerce")

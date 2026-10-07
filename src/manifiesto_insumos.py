@@ -1,6 +1,6 @@
-"""Manifiesto de procedencia de `data/eph_cache/`: URL de origen, fecha de
-descarga y hash SHA-256 de cada archivo crudo cacheado, para poder verificar
-más adelante que se trabajó con los mismos insumos.
+"""Manifiesto de procedencia de `data/eph_cache/`: URL, fecha de descarga y
+hash SHA-256 de cada archivo cacheado, para verificar más adelante los
+insumos usados.
 """
 from __future__ import annotations
 
@@ -24,9 +24,8 @@ def calcular_sha256(archivo: Path) -> str:
 
 
 def url_fuente(anio: int, trimestre: int, nombre_archivo: str) -> str | None:
-    """URL desde donde se descargó `nombre_archivo` para `(anio, trimestre)`.
-    `None` si es histórico y no hay captura de Wayback Machine registrada
-    para ese trimestre (no debería pasar para un archivo ya cacheado)."""
+    """URL de origen de `nombre_archivo` para `(anio, trimestre)`. `None` si
+    es histórico sin captura de Wayback Machine registrada."""
     if es_historico(anio, trimestre):
         timestamp = _WAYBACK_DBF.get((anio, trimestre))
         if timestamp is None:
@@ -37,9 +36,7 @@ def url_fuente(anio: int, trimestre: int, nombre_archivo: str) -> str | None:
 
 def construir_manifiesto(cache_dir: Path) -> pd.DataFrame:
     """Recorre `cache_dir/<anio>/trim<trimestre>/<archivo>` y arma una fila
-    por archivo cacheado. `fecha_descarga` es el mtime del archivo en disco
-    -- proxy razonable porque `EphClient` solo escribe el archivo una vez, al
-    descargarlo, pero no es un evento de descarga logueado aparte."""
+    por archivo cacheado."""
     filas = []
     for archivo in sorted(cache_dir.glob("*/trim*/*")):
         if not archivo.is_file():
@@ -51,6 +48,8 @@ def construir_manifiesto(cache_dir: Path) -> pd.DataFrame:
             "trimestre": trimestre,
             "archivo": archivo.name,
             "url": url_fuente(anio, trimestre, archivo.name),
+            # mtime como proxy de fecha_descarga: EphClient escribe el archivo
+            # una sola vez, al descargarlo, sin loguear el evento aparte.
             "fecha_descarga": pd.Timestamp(archivo.stat().st_mtime, unit="s").isoformat(),
             "sha256": calcular_sha256(archivo),
         })

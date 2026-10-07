@@ -1,0 +1,5 @@
+indicador,excluye_2020_del_puente,media_brecha_puente,std_brecha_puente,n_anios_fuera_2std,pertinencia_2010_2015
+pobreza,False,-3.16,1.1,5,no_pertinente
+pobreza,True,-3.24,1.16,5,no_pertinente
+indigencia,False,0.55,1.34,3,no_pertinente
+indigencia,True,0.25,1.13,4,no_pertinente

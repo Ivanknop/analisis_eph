@@ -80,10 +80,8 @@ class TestNormalizarPorMediaPonderada:
         np.testing.assert_allclose(normalizar_por_media_ponderada([1, 3], [3, 1]), [2 / 3, 2.0])
 
     def test_ventana_de_dos_trimestres_con_inflacion(self):
-        """El test del ano movil: dos copias de la misma distribucion, una escalada por
-        `k` (inflacion entre trimestres), normalizada cada una por su propia media y
-        concatenadas, dan exactamente el Gini de la distribucion original. Sin normalizar,
-        el Gini de la ventana sale inflado."""
+        """Dos copias de la distribución, una escalada por `k`, normalizadas
+        y concatenadas dan el Gini original. Sin normalizar, sale inflado."""
         base = np.array([0.0, 5.0, 10.0, 40.0, 100.0])
         pesos = np.array([2.0, 1.0, 3.0, 1.0, 1.0])
         k = 2.7

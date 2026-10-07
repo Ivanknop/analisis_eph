@@ -1,0 +1,9 @@
+h,tratamiento,pct_observado_con_deficit,pct_estandarizado_sin_deficit,diferencia,diferencia_ic95_low,diferencia_ic95_high,n_clusters,n_con_deficit
+1,informal,5.04,4.86,0.18,-0.12,0.53,278011,22625
+1,categoria_propia,11.24,9.94,1.31,0.83,1.77,278011,22625
+1,excluir,6.47,6.24,0.23,-0.14,0.59,227941,17538
+1,cuenta_propia_precario,6.17,6.35,-0.18,-0.51,0.17,278011,22625
+4,informal,6.09,5.82,0.27,-0.17,0.72,202706,17166
+4,categoria_propia,12.38,11.19,1.19,0.69,1.75,202706,17166
+4,excluir,7.26,7.13,0.13,-0.36,0.64,162966,12844
+4,cuenta_propia_precario,7.4,7.28,0.12,-0.33,0.61,202706,17166

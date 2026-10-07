@@ -47,14 +47,31 @@ def calcular_decil(hogar: pd.DataFrame) -> pd.Series:
     return decil
 
 def bucket_nivel_ed(nivel_ed: pd.Series) -> pd.Series:
-    """2 buckets explícitos (para no fragmentar celdas en Parte E): 1-3 = secundario
-    incompleto o menos, 4-6 = secundario completo o más. 7 (sin instrucción) entra en
-    el primer bucket; 9 (Ns/Nr) y nulos quedan fuera (NA)."""
+    """2 buckets: 1-3-7 (sin instrucción incluido) = "secundario incompleto
+    o menos", 4-6 = "secundario completo o más". `NA` en 9 (Ns/Nr) y nulos."""
     n = pd.to_numeric(nivel_ed, errors="coerce")
     bucket = pd.Series(pd.array([pd.NA] * len(n), dtype="object"), index=n.index)
     bucket[n.isin([1, 2, 3, 7])] = "secundario incompleto o menos"
     bucket[n.isin([4, 5, 6])] = "secundario completo o más"
     return bucket
+
+def clasificar_situacion_escolar(ch10: pd.Series, ch06: pd.Series, nivel_ed: pd.Series,
+                                  edad_min: int = 6, edad_max: int = 17) -> pd.Series:
+    """Por persona en edad escolar: `"termino"`, `"asiste"` o
+    `"no_asiste_no_completo"` según `nivel_ed`/`ch10`. `NA` fuera de rango
+    o si `ch10` no permite decidir."""
+    edad = pd.to_numeric(ch06, errors="coerce")
+    en_edad_escolar = edad.between(edad_min, edad_max)
+    nivel = pd.to_numeric(nivel_ed, errors="coerce")
+    codigo = pd.to_numeric(ch10, errors="coerce")
+
+    situacion = pd.Series(pd.array([pd.NA] * len(edad), dtype="object"), index=edad.index)
+    termino = nivel.isin([4, 5, 6])
+    situacion[en_edad_escolar & termino] = "termino"
+    situacion[en_edad_escolar & ~termino & (codigo == 1)] = "asiste"
+    situacion[en_edad_escolar & ~termino & codigo.isin([2, 3])] = "no_asiste_no_completo"
+    return situacion
+
 
 def to_bool(serie: pd.Series, codigos: list[int]) -> pd.Series:
     '''Nullable boolean: True si el valor numérico está en `codigos`, NA si el valor
@@ -66,9 +83,8 @@ def to_bool(serie: pd.Series, codigos: list[int]) -> pd.Series:
     return out
 
 def kleene_any_hogar(individual: pd.DataFrame, serie_bool: pd.Series) -> pd.Series:
-    '''any() Kleene-aware agrupado por (CODUSU, NRO_HOGAR): True si algún miembro
-    cumple, NA si nadie cumple pero todos tienen el dato faltante, False en el resto
-    (distinto del `.any()` default de pandas, que trata NA como False).'''
+    '''`.any()` Kleene-aware por hogar: `True` si algún miembro cumple, `NA`
+    si nadie cumple y todos tienen el dato faltante, `False` en el resto.'''
     d = pd.DataFrame({"CODUSU": individual["CODUSU"], "NRO_HOGAR": individual["NRO_HOGAR"], "v": serie_bool})
     g = d.groupby(["CODUSU", "NRO_HOGAR"])
     algun_true = (d["v"].fillna(False) == True).groupby([d["CODUSU"], d["NRO_HOGAR"]]).any()
@@ -80,12 +96,9 @@ def kleene_any_hogar(individual: pd.DataFrame, serie_bool: pd.Series) -> pd.Seri
 
 
 def calcular_componentes_ancla(hogar: pd.DataFrame, n_miembros: pd.Series) -> pd.DataFrame:
-    '''Componentes del ancla habitacional (adaptación del criterio NBI del INDEC) y el
-    flag combinado `ancla_con_deficit`. `hogar` debe estar indexado por
-    `(CODUSU, NRO_HOGAR)`; `n_miembros` es una Series con el mismo índice (o un
-    superconjunto -- se reindexa acá). Uso general: versión completa (6 columnas) de
-    `calcular_componentes_ancla`, antes duplicada parcialmente (subconjunto de 4
-    columnas, misma fórmula) en 04_trayectorias/06_poblacion_riesgo.'''
+    '''Componentes del ancla habitacional (adaptación NBI-INDEC) y el flag
+    `ancla_con_deficit`. `hogar` indexado por `(CODUSU, NRO_HOGAR)`.'''
+    # n_miembros puede traer un índice superconjunto del de hogar; se reindexa.
     n = n_miembros.reindex(hogar.index)
     ii1 = pd.to_numeric(hogar["II1"], errors="coerce")
     cuartos_dormir = pd.to_numeric(hogar["II2"], errors="coerce").fillna(0)

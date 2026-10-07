@@ -1,0 +1,13 @@
+{
+  "descargado_utc": "2026-10-07T01:08:49.042016+00:00",
+  "archivos": {
+    "cba_regional_crudo.csv": {
+      "url": "https://infra.datos.gob.ar/catalog/sspm/dataset/445/distribution/445.1/download/canasta-basica-alimentaria-regiones-del-pais.csv",
+      "bytes": 7897
+    },
+    "cbt_regional_crudo.csv": {
+      "url": "https://infra.datos.gob.ar/catalog/sspm/dataset/446/distribution/446.1/download/canasta-basica-total-regiones-del-pais.csv",
+      "bytes": 7525
+    }
+  }
+}

@@ -7,6 +7,7 @@ from panel import (
     clasificar_viviendas_no_vinculadas,
     construir_pares,
     contar_altas_bajas,
+    contar_nacimientos,
     emparejar_componentes,
     hash_esquema_panel,
     identidad_nucleo,
@@ -290,6 +291,44 @@ class TestContarAltasBajas:
         individual_th = _individual([["V2", 1, 1, 1, 1, 40, 1]])
         r = contar_altas_bajas(individual_t, individual_th, pares, h=1).iloc[0]
         assert r["n_bajas"] == 2 and r["n_altas"] == 0
+
+
+class TestContarNacimientos:
+    def test_alta_con_ch06_menos_uno_cuenta_como_nacimiento_h1(self):
+        pares = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR_t": [1], "NRO_HOGAR_th": [1]})
+        individual_t = _individual([["V1", 1, 1, 1, 1, 40, 1]])
+        individual_th = _individual([["V1", 1, 1, 1, 1, 41, 1], ["V1", 1, 2, 3, 2, -1, 0]])
+        r = contar_nacimientos(individual_t, individual_th, pares, h=1).iloc[0]
+        assert r["n_nacimientos"] == 1
+
+    def test_alta_con_otra_edad_no_cuenta_h1(self):
+        pares = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR_t": [1], "NRO_HOGAR_th": [1]})
+        individual_t = _individual([["V1", 1, 1, 1, 1, 40, 1]])
+        individual_th = _individual([["V1", 1, 1, 1, 1, 41, 1], ["V1", 1, 2, 3, 2, 10, 0]])
+        r = contar_nacimientos(individual_t, individual_th, pares, h=1).iloc[0]
+        assert r["n_nacimientos"] == 0
+
+    def test_alta_con_ch06_uno_cuenta_como_nacimiento_h4_pero_no_h1(self):
+        pares = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR_t": [1], "NRO_HOGAR_th": [1]})
+        individual_t = _individual([["V1", 1, 1, 1, 1, 40, 1]])
+        individual_th_h4 = _individual([["V1", 1, 1, 1, 1, 44, 1], ["V1", 1, 2, 3, 2, 1, 0]])
+        r_h4 = contar_nacimientos(individual_t, individual_th_h4, pares, h=4).iloc[0]
+        assert r_h4["n_nacimientos"] == 1
+
+        individual_th_h1 = _individual([["V1", 1, 1, 1, 1, 41, 1], ["V1", 1, 2, 3, 2, 1, 0]])
+        r_h1 = contar_nacimientos(individual_t, individual_th_h1, pares, h=1).iloc[0]
+        assert r_h1["n_nacimientos"] == 0
+
+    def test_no_altera_el_resultado_de_contar_altas_bajas(self):
+        pares = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR_t": [1], "NRO_HOGAR_th": [1]})
+        individual_t = _individual([["V1", 1, 1, 1, 1, 40, 1], ["V1", 1, 2, 3, 2, 10, 0]])
+        individual_th = _individual([["V1", 1, 1, 1, 1, 41, 1], ["V1", 1, 2, 3, 2, -1, 0]])
+        antes = contar_altas_bajas(individual_t, individual_th, pares, h=1).iloc[0]
+        contar_nacimientos(individual_t, individual_th, pares, h=1)
+        despues = contar_altas_bajas(individual_t, individual_th, pares, h=1).iloc[0]
+        assert antes["n_altas"] == despues["n_altas"]
+        assert antes["n_bajas"] == despues["n_bajas"]
+        assert antes["cambio_composicion"] == despues["cambio_composicion"]
 
 
 class TestConstruirPares:

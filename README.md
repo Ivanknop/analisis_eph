@@ -89,6 +89,7 @@ Las notebooks se corren en orden: cada una lee la capa que escribió la anterior
 | `04_trayectorias` | `data/03_panel/` | `data/04_trayectorias/`, `trayectorias_*.csv` |
 | `05_composicion_quintiles` | `data/02_nucleo/` | `composicion_quintiles_*.csv` (contexto descriptivo, transversal) |
 | `06_poblacion_riesgo` | `data/02_nucleo/`, `data/03_panel/`, `data/04_trayectorias/` | `riesgo_*.csv` (población en riesgo y salida, por quintil/decil × ancla) |
+| `07_cascada_targets` | `data/02_nucleo/`, `data/01_armonizado/`, `data/03_panel/` | `data/07_targets/pares_targets/`, `cascada_trimestral.csv`, `vivienda_frecuencias*.csv`, `cascada_folds.csv` (cascada de casos y targets Y1/Y2, D24) |
 
 Dónde está cada parte de la pregunta:
 

@@ -1,0 +1,22 @@
+{
+  "descargado_utc": "2026-10-06",
+  "fuentes": {
+    "cedlas/tornarolli_2018_documento_trabajo_226.pdf": {
+      "url": "https://www.cedlas.econo.unlp.edu.ar/wp/wp-content/uploads/doc_cedlas226.pdf",
+      "cita": "Tornarolli, L. (2018). Series Comparables de Indigencia y Pobreza: Una Propuesta Metodologica. Documento de Trabajo N 226, CEDLAS-UNLP, abril 2018, ISSN 1853-0168.",
+      "tabla_transcripta": "cedlas/series_comparables_anexo_b.csv, de Anexo B: Resultados (p.26-27), leida directamente del PDF (no de las figuras)."
+    },
+    "uca/odsa_2004_2023_regimen_inflacionario.pdf": {
+      "url": "https://wadmin.uca.edu.ar/public/ckeditor/Observatorio%20Deuda%20Social/Presentaciones/2023/Observatorio_Pobreza_ingreso_5_12.pdf",
+      "cita": "Observatorio de la Deuda Social Argentina (ODSA-UCA). Argentina (2004-2023): Un regimen inflacionario cronico de empobrecimiento y mayor asistencia social.",
+      "tabla_transcripta": "uca/edsa_pobreza_indigencia_anual.csv, del grafico Evolucion de las tasas de indigencia y de pobreza urbana EDSA-Equidad empalme (2004-2023) y EPH-INDEC 2 semestre (2004-2023*).",
+      "nota": "serie EDSA 2010-2016 = Bicentenario (independiente); 2017-2023 = Agenda para la Equidad (independiente); <2010 = reconstruccion hacia atras en base a EPH/INDEC (NO independiente, D25 5.a)."
+    },
+    "indec_metodologia_anterior/pob_tot_2sem12.pdf": {
+      "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/pob_tot_2sem12.pdf",
+      "cita": "INDEC (2013). Encuesta Permanente de Hogares. Incidencia de la Pobreza y de la Indigencia. Resultados del segundo semestre de 2012. Buenos Aires, 24 de abril de 2013.",
+      "tabla_transcripta": "indec_metodologia_anterior/pobreza_1s2003_2s2012.csv, de Cuadro 1 (p.2): serie historica 1er semestre 2003 a 2do semestre 2012, metodologia anterior a 2016.",
+      "nota": "cubre de sobra los 7 semestres 2003-2006 pedidos (resuelve la pregunta abierta de la seccion 5.a del plan sin necesitar 7 descargas separadas). Util solo como contexto/triangulacion (sin criterio de pertinencia propio, D25 5.c) -- el tramo 2007-2015 de esta misma fuente sigue bajo reserva metodologica (D3/CLAUDE.md)."
+    }
+  }
+}

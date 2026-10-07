@@ -1,6 +1,5 @@
 """Armonización estructural de microdatos EPH cacheados: nombres de columna,
-tipos de las claves de vinculación, e inventario de variable x trimestre x
-tipo real. No toca valores ni reimplementa la descarga/lectura de INDEC.
+tipos de claves, e inventario de variable x trimestre x tipo real.
 """
 # La separación histórico (DBF, 2003T3-2015T2) vs. regular (texto, 2016T1+)
 # usa el mismo corte de año que ya asume `eph_client.py` internamente -- ver
@@ -60,9 +59,10 @@ def es_historico(anio: int, _trimestre: int) -> bool:
 
 
 def pendiente_rar(anio: int, trimestre: int) -> bool:
-    """True si el trimestre es histórico, su archivo es `.rar`, y no hay `unar`
-    disponible en este entorno -- se recalcula contra el entorno real, no
-    contra una lista fija, para que deje de aplicar solo con instalar `unar`."""
+    """True si el trimestre es histórico, su archivo es `.rar`, y no hay
+    `unar` disponible en este entorno."""
+    # Se recalcula contra el entorno real (no una lista fija) para que deje
+    # de aplicar apenas se instale `unar`.
     if not es_historico(anio, trimestre):
         return False
     extension = _EXTENSION_HISTORICA.get((anio, trimestre), "zip" if anio <= 2013 else "rar")
@@ -70,9 +70,9 @@ def pendiente_rar(anio: int, trimestre: int) -> bool:
 
 
 def leer_trimestre(client: EphClient, anio: int, trimestre: int, tipo: str) -> pd.DataFrame:
-    """Lectura completa (no solo encabezado) de la base `tipo` de un trimestre.
-    Deja pasar `TrimestreNoPublicado`/`UrlDesconocida`/`RuntimeError` (unar
-    faltante) -- el llamador decide qué hacer, no se esconden acá."""
+    """Lectura completa (no solo encabezado) de la base `tipo` de un
+    trimestre. Deja pasar `TrimestreNoPublicado`/`UrlDesconocida`/
+    `RuntimeError` -- el llamador decide qué hacer con cada una."""
     if es_historico(anio, trimestre):
         archivo = client.descargar_trimestre_historico(anio, trimestre)
         return client.leer_base_historica(archivo, tipo)
@@ -96,9 +96,8 @@ def armonizar(df: pd.DataFrame, tipo: str) -> pd.DataFrame:
 
 
 def registrar_inventario(df: pd.DataFrame, anio: int, trimestre: int, tipo: str) -> list[dict]:
-    """Una fila por variable presente en `df` (ya armonizado o no -- se usa el
-    dtype tal cual esté en el momento en que se llama). `tipo_dato` sale de la
-    lectura real, no de una muestra ni de metadata de esquema declarado."""
+    """Una fila por variable presente en `df`, con su `tipo_dato` real (el
+    dtype tal cual esté al momento de llamar, no de un esquema declarado)."""
     return [
         {
             "tipo": tipo,
@@ -112,10 +111,10 @@ def registrar_inventario(df: pd.DataFrame, anio: int, trimestre: int, tipo: str)
 
 
 def construir_inventario(registros: list[dict]) -> pd.DataFrame:
-    """Formato largo (tidy): una fila por (tipo, variable, año, trimestre) con
-    el `tipo_dato` observado. La ausencia de una variable en un trimestre se
-    deriva de que no hay fila para esa combinación -- no se materializan filas
-    `presente=False` explícitas."""
+    """Formato largo (tidy): una fila por (tipo, variable, año, trimestre)
+    con el `tipo_dato` observado."""
+    # La ausencia de una variable en un trimestre se deriva de que no hay fila
+    # para esa combinación -- no se materializan filas `presente=False`.
     return pd.DataFrame(registros, columns=["tipo", "anio", "trimestre", "variable", "tipo_dato"])
 
 
@@ -162,10 +161,8 @@ def _esqueleto(nombre: str) -> str:
 
 
 def posibles_renombres(inventario_df: pd.DataFrame) -> pd.DataFrame:
-    """Heurística de nombre, NO detección semántica: para cada par de
-    trimestres consecutivos (por `tipo`), agrupa por `_esqueleto()` las
-    variables que desaparecen y las que aparecen, y propone como posible
-    rename los pares que comparten esqueleto."""
+    """Heurística de nombre, NO semántica: agrupa por `_esqueleto()` las
+    variables que desaparecen/aparecen entre trimestres y propone pares."""
     # Requiere revisión humana -- puede haber falsos positivos (dos variables
     # no relacionadas que reducen al mismo esqueleto) y falsos negativos
     # (renames que cambian de raíz).
@@ -200,10 +197,8 @@ def posibles_renombres(inventario_df: pd.DataFrame) -> pd.DataFrame:
 def aglomerados_esperados(conjuntos_por_trimestre: dict[tuple[int, int], set[int]],
                            corte: tuple[int, int] = _CORTE_AGLOMERADOS,
                            umbral: float = 0.9) -> dict[str, set[int]]:
-    """Conjunto de códigos de aglomerado "esperado" por era (pre/post `corte`),
-    calculado como los códigos que aparecen en al menos `umbral` de los
-    trimestres de esa era -- no hardcodeado contra ningún trimestre de
-    referencia puntual."""
+    """Códigos de aglomerado "esperados" por era (pre/post `corte`): los que
+    aparecen en al menos `umbral` de los trimestres de esa era."""
     eras: dict[str, list[tuple[int, int]]] = {"pre": [], "post": []}
     for trimestre in conjuntos_por_trimestre:
         eras["pre" if trimestre < corte else "post"].append(trimestre)

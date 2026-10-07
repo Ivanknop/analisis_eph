@@ -3,6 +3,7 @@ data/0[1-9]_*/**/*.parquet
 data/indice-FACPCE.csv
 data/indice-FACPCE.xlsx
 data/EPH_tot_urbano_estructura_bases_2025.pdf
+docs/decisiones_metodologicas.md
 __pycache__/
 *.pyc
 .pytest_cache/

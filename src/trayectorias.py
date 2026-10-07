@@ -1,7 +1,5 @@
 """Diagnóstico de trayectorias de hogares en 4 apariciones superpuestas
-(t, t+1, t+4, t+5) sobre el panel vinculado del notebook 02 -- no construye
-ninguna etiqueta de deterioro (ver notebooks/04_trayectorias.ipynb y D12 en
-docs/decisiones_metodologicas.md).
+(t, t+1, t+4, t+5) sobre el panel vinculado del notebook 02 (D12).
 """
 # Todas las funciones son puras (reciben DataFrames/dicts, no tocan `data/`)
 # para poder testearlas con fixtures sintéticas chicas
@@ -50,17 +48,16 @@ def claves_hogar(hogar: pd.DataFrame) -> pd.DataFrame:
 
 
 def inferir_visita(presencia_vivienda: dict[int, pd.DataFrame | None]) -> pd.DataFrame:
-    """Infiere la visita (1-4, D12) de cada vivienda presente en el offset `0` de
-    `presencia_vivienda`, por selección de hipótesis sobre `OFFSETS_VISITA`. `None` en un
-    offset significa "no determinable" (gap de publicación o cruce de era, D7) -- lo decide
-    quien llama, no esta función. Devuelve CODUSU, AGLOMERADO, visita_inferida (Int8, NA si hay
-    empate), n_matches, n_mismatches, n_determinables (Int8) y ambigua (boolean)."""
+    """Infiere la visita (1-4, D12) de cada vivienda, por selección de
+    hipótesis sobre `OFFSETS_VISITA`."""
     universo = presencia_vivienda[0][CLAVE_VIVIENDA].drop_duplicates().reset_index(drop=True)
 
     presente_por_offset: dict[int, pd.Series | None] = {}
     for offset in OFFSETS_VISITA:
         tabla = presencia_vivienda.get(offset)
         if tabla is None:
+            # `None` = "no determinable" (gap de publicación o cruce de era,
+            # D7) -- lo decide quien llama, no esta función.
             presente_por_offset[offset] = None
             continue
         claves = tabla[CLAVE_VIVIENDA].drop_duplicates().assign(_presente=True)
@@ -113,9 +110,9 @@ def inferir_visita(presencia_vivienda: dict[int, pd.DataFrame | None]) -> pd.Dat
 def clasificar_patron_apariciones(claves_hogar_t0: pd.DataFrame, claves_hogar_t0_1: pd.DataFrame | None,
                                    claves_hogar_t0_4: pd.DataFrame | None,
                                    claves_hogar_t0_5: pd.DataFrame | None) -> pd.DataFrame:
-    """Patrón de presencia cruda (p. ej. `"1111"`, `"1100"`) de cada hogar de `claves_hogar_t0`
-    en `t0, t0+1, t0+4, t0+5`, por clave exacta `CODUSU+NRO_HOGAR+AGLOMERADO`. Un trimestre `None`
-    se marca `"?"` en esa posición (no determinable, no se confunde con ausencia)."""
+    """Patrón de presencia cruda (p. ej. `"1111"`, `"1100"`) de cada hogar
+    en `t0, t0+1, t0+4, t0+5`. Un trimestre `None` se marca `"?"` (no
+    determinable, no se confunde con ausencia)."""
     resultado = claves_hogar_t0[CLAVE_HOGAR].drop_duplicates().reset_index(drop=True)
     resultado["patron"] = "1"
     for tabla in (claves_hogar_t0_1, claves_hogar_t0_4, claves_hogar_t0_5):
@@ -130,9 +127,8 @@ def clasificar_patron_apariciones(claves_hogar_t0: pd.DataFrame, claves_hogar_t0
 
 def encadenar_trayectoria(pares_h1_t: pd.DataFrame, pares_h4_t: pd.DataFrame,
                            pares_h1_t4: pd.DataFrame) -> pd.DataFrame:
-    """Encadena los 3 eslabones t->t+1, t->t+4 y t+4->t+5 por `CODUSU+NRO_HOGAR+AGLOMERADO`
-    (clave invariante por construcción dentro de cada eslabón, D9/`panel.vincular_hogares`):
-    intersección exacta de los 3, sin exigir `identidad_confirmada` en ninguno."""
+    """Encadena los 3 eslabones t->t+1, t->t+4 y t+4->t+5 por clave de
+    hogar: intersección exacta de los 3, sin exigir `identidad_confirmada`."""
     def _eslabon(pares: pd.DataFrame, columna: str) -> pd.DataFrame:
         return pares.rename(columns={"NRO_HOGAR_t": "NRO_HOGAR", "identidad_confirmada": columna})[
             ["CODUSU", "NRO_HOGAR", "AGLOMERADO", columna]
@@ -148,9 +144,9 @@ def encadenar_trayectoria(pares_h1_t: pd.DataFrame, pares_h4_t: pd.DataFrame,
 
 
 def verificar_contra_h4_t1(trayectoria: pd.DataFrame, pares_h4_t1: pd.DataFrame) -> pd.DataFrame:
-    """Agrega a `trayectoria` el eslabón redundante t+1->t+5 (`pares_h4` con origen `t+1`,
-    mismo horizonte real que la trayectoria completa) como verificación cruzada -- no se usa
-    para construir la trayectoria, solo para detectar inconsistencias."""
+    """Agrega a `trayectoria` el eslabón redundante t+1->t+5 como
+    verificación cruzada -- no se usa para construirla, solo para detectar
+    inconsistencias."""
     verificacion = pares_h4_t1.rename(
         columns={"NRO_HOGAR_t": "NRO_HOGAR", "identidad_confirmada": "identidad_confirmada_verificacion"}
     )[["CODUSU", "NRO_HOGAR", "AGLOMERADO", "identidad_confirmada_verificacion"]].assign(presente_en_verificacion=True)
@@ -161,10 +157,10 @@ def verificar_contra_h4_t1(trayectoria: pd.DataFrame, pares_h4_t1: pd.DataFrame)
 
 def cohorte_completable(anio_t0: int, trimestre_t0: int, trimestres_publicados: set[tuple[int, int]],
                          es_historico) -> dict:
-    """Evalúa si la cohorte que entra en `(anio_t0, trimestre_t0)` puede en teoría completar las
-    4 visitas: existencia de `t0, t0+1, t0+4, t0+5` en `trimestres_publicados`, y que el eslabón
-    `t0->t0+4` no cruce la frontera histórico/regular (D7). `es_historico` se recibe como
-    parámetro (`armonizacion.es_historico`) para no acoplar este módulo a `armonizacion`."""
+    """Si la cohorte que entra en `(anio_t0, trimestre_t0)` puede completar
+    las 4 visitas (trimestres publicados, D7 no cruzado)."""
+    # `es_historico` se recibe como parámetro, no se importa de `armonizacion`,
+    # para no acoplar este módulo a ese otro.
     trimestres = {nombre: sumar_trimestres(anio_t0, trimestre_t0, offset)
                   for nombre, offset in (("t0", 0), ("t0+1", 1), ("t0+4", 4), ("t0+5", 5))}
     faltantes = [nombre for nombre, t in trimestres.items() if t not in trimestres_publicados]
@@ -176,9 +172,9 @@ def cohorte_completable(anio_t0: int, trimestre_t0: int, trimestres_publicados: 
 
 
 def encadenar_dos_eslabones(pares_1: pd.DataFrame, pares_2: pd.DataFrame) -> pd.DataFrame:
-    """Intersección por `CODUSU+NRO_HOGAR+AGLOMERADO` de 2 eslabones consecutivos de pares
-    (no 3, a diferencia de `encadenar_trayectoria`) -- insumo de los diseños de panel
-    dinámico (a)/(b) de D13, que no requieren la trayectoria completa de 4 visitas."""
+    """Intersección por clave de hogar de 2 eslabones consecutivos de pares
+    (no 3, a diferencia de `encadenar_trayectoria`) -- insumo de los diseños
+    de panel dinámico de D13."""
     def _eslabon(pares: pd.DataFrame, columna: str) -> pd.DataFrame:
         return pares.rename(columns={"NRO_HOGAR_t": "NRO_HOGAR", "identidad_confirmada": columna})[
             ["CODUSU", "NRO_HOGAR", "AGLOMERADO", columna]
@@ -192,9 +188,8 @@ def encadenar_dos_eslabones(pares_1: pd.DataFrame, pares_2: pd.DataFrame) -> pd.
 
 def contar_n_diseno(tabla: pd.DataFrame, columna_identidad: str, anio_t_col: str = "ANO4_t",
                      trimestre_t_col: str = "TRIMESTRE_t") -> pd.DataFrame:
-    """Cuenta hogares `vinculada` (todas las filas de `tabla`) e `identidad_confirmada`
-    (`columna_identidad`, True), por trimestre de origen -- mismo conteo sirve para
-    cualquiera de los 3 diseños candidatos, pasándole la tabla y columna que corresponda."""
+    """Cuenta hogares `vinculada` (todas las filas) e `identidad_confirmada`
+    (`columna_identidad`, True) por trimestre de origen."""
     base = tabla[[anio_t_col, trimestre_t_col]].copy()
     base["vinculada"] = 1
     base["identidad_confirmada"] = tabla[columna_identidad].fillna(False).astype(bool)
@@ -202,10 +197,8 @@ def contar_n_diseno(tabla: pd.DataFrame, columna_identidad: str, anio_t_col: str
 
 
 def clasificar_perdida_por_patron(patron: pd.Series) -> pd.Series:
-    """Clasifica cada patrón de 4 caracteres (salida de `clasificar_patron_apariciones`)
-    en un estado de selectividad: `"completa"` (`"1111"`), `"hueco_con_reaparicion"` (un
-    `"1"` después de un `"0"`), `"se_pierde_en_t0_1"`/`"_t0_4"`/`"_t0_5"` (última posición
-    con `"1"` en un patrón sin huecos antes), o `"no_determinable"` (patrón con `"?"`)."""
+    """Estado de selectividad de un patrón de 4 caracteres: `"completa"`,
+    `"hueco_con_reaparicion"`, `"se_pierde_en_t0_*"`, `"no_determinable"`."""
     etiquetas_corte = {0: "se_pierde_en_t0_1", 1: "se_pierde_en_t0_4", 2: "se_pierde_en_t0_5"}
 
     def _estado(p: str) -> str:

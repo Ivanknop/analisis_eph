@@ -1,12 +1,9 @@
-"""Bootstrap de cluster (pesos Poisson(1) i.i.d.) para comparar una tasa de evento
-binario entre 2 grupos -- mismo mecanismo que `resumen_estandarizado` de
-`notebooks/03_exploracion_descriptiva.ipynb` (celda 37), generalizado y parametrizado
-para reusarse desde otros notebooks sin duplicar la lógica de inferencia estadística
-(a diferencia del resto de las reglas de negocio del repo, que sí se duplican por
-notebook -- ver notebooks/06_poblacion_riesgo.ipynb).
+"""Bootstrap de cluster (pesos Poisson(1) i.i.d.) para comparar una tasa de
+evento binario entre 2 grupos, parametrizado para reusarse entre notebooks.
 """
-# Funciones puras (reciben DataFrames, no tocan `data/`), mismo criterio que panel.py
-# y trayectorias.py -- permite testearlas con fixtures sintéticas (tests/test_bootstrap.py).
+# A diferencia del resto de reglas de negocio del repo (que se duplican por
+# notebook, ver notebooks/06_poblacion_riesgo.ipynb), esto se comparte: es
+# inferencia estadística, no una regla de negocio.
 from __future__ import annotations
 
 import numpy as np
@@ -36,17 +33,9 @@ def diferencia_dos_grupos_bootstrap_cluster(
     tabla: pd.DataFrame, columna_cluster: str, columna_evento: str, columna_grupo: str,
     grupo_a: object, grupo_b: object, n_boot: int = 400, seed: int = 42, batch: int = 100,
 ) -> dict:
-    """Tasa de `columna_evento` (bool) en `grupo_a` vs. `grupo_b` de `columna_grupo`,
-    con IC95% de la diferencia (a - b) por bootstrap de cluster (`columna_cluster`,
-    pesos Poisson(1) i.i.d., `n_boot` réplicas). Filas con `columna_evento`/`columna_grupo`
-    nulos, o con `columna_grupo` fuera de `{grupo_a, grupo_b}`, se excluyen antes de
-    agregar por cluster.
-
-    Nota de implementación -- el bug que motivó extraer esta función: `N`/`S` agregados
-    por cluster (`W @ N`) ya no tienen un eje de cluster para reducir; cada tasa de
-    réplica es una división elemento a elemento sobre la columna del grupo, **sin**
-    ningún `.sum()` extra -- sumar de nuevo ahí colapsa el eje de réplicas en vez del de
-    clusters (ya no existe) y da un IC artificialmente angosto."""
+    """Tasa de `columna_evento` en `grupo_a` vs. `grupo_b`, con IC95% de la
+    diferencia por bootstrap de cluster. Filas nulas o fuera de
+    `{grupo_a, grupo_b}` se excluyen antes de agregar."""
     N, S, n_clusters = _tabla_cluster_dos_grupos(tabla, columna_cluster, columna_evento, columna_grupo, grupo_a, grupo_b)
     vacio = {"tasa_a": np.nan, "tasa_b": np.nan, "diferencia": np.nan,
              "diferencia_ic95_low": np.nan, "diferencia_ic95_high": np.nan,
@@ -70,6 +59,9 @@ def diferencia_dos_grupos_bootstrap_cluster(
         b = min(batch, n_boot - hecho)
         W = rng.poisson(1.0, size=(b, n_clusters)).astype("float64")
         Nb, Sb = W @ N, W @ S  # (b, 2) -- ya agregado por cluster, sin eje de cluster restante
+        # Sin ningún .sum() extra acá: ya no queda eje de cluster para reducir
+        # (bug que motivó extraer esta función -- sumar de nuevo colapsaba el
+        # eje de réplicas y daba un IC artificialmente angosto).
         diffs[hecho:hecho + b] = _tasa(Nb, Sb, 0) - _tasa(Nb, Sb, 1)
         hecho += b
     diffs = diffs[~np.isnan(diffs)]
@@ -88,14 +80,9 @@ def estandarizar_diferencia_bootstrap(
     grupo_con: object, grupo_sin: object, columna_estrato: str,
     n_boot: int = 400, seed: int = 42, batch: int = 100,
 ) -> dict:
-    """Estandarización directa (tasa observada en `grupo_con` vs. la tasa que tendría si
-    tuviera la composición de `columna_estrato` del propio `grupo_con` pero las tasas por
-    estrato de `grupo_sin`) + IC95% de la diferencia por bootstrap de cluster -- puerto
-    generalizado (un solo `columna_estrato` en vez de quintil×educación fijo) de
-    `_tabla_cluster`/`_estandarizar`/`resumen_estandarizado` de
-    `notebooks/03_exploracion_descriptiva.ipynb` (celda 37). A diferencia de
-    `diferencia_dos_grupos_bootstrap_cluster`, acá sí hay un eje real de estratos para
-    reducir con `.sum(axis=-1)` dentro de cada réplica -- no tiene el bug de esa función."""
+    """Tasa observada en `grupo_con` vs. la que tendría con las tasas por
+    estrato de `grupo_sin`, + IC95% por bootstrap de cluster."""
+    # Generaliza `resumen_estandarizado` de notebooks/03_exploracion_descriptiva.ipynb.
     d = tabla.dropna(subset=[columna_evento, columna_grupo, columna_estrato]).copy()
     d[columna_evento] = d[columna_evento].astype(bool)
     d = d[d[columna_grupo].isin([grupo_con, grupo_sin])]

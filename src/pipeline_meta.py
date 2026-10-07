@@ -1,7 +1,6 @@
-"""Utilidades compartidas por los notebooks del pipeline: registro de corridas
-(`data/meta/corridas.csv`), resumen incremental por trimestre, y helpers para
-el parámetro `REHACER` (existencia/staleness de particiones entre capas
-consecutivas).
+"""Utilidades compartidas por los notebooks del pipeline: registro de corridas,
+resumen incremental por trimestre, y helpers de staleness de particiones para
+el parámetro `REHACER`.
 """
 # No importa nada de `eph_client`/`armonizacion`/`tipado_nucleo` -- es de más
 # bajo nivel que esos tres, cualquier notebook del pipeline lo puede usar.
@@ -15,9 +14,8 @@ import pandas as pd
 
 
 def obtener_commit_git(repo: Path) -> str:
-    """`git rev-parse --short HEAD`, o `"sin commit"` si falla (sin commits
-    todavía -- como en este repo hoy -- o `git` no disponible). Nunca propaga
-    la excepción: esto es metadata de registro, no debe frenar un notebook."""
+    """`git rev-parse --short HEAD`, o `"sin commit"` si falla o no hay
+    commits todavía. Nunca propaga la excepción."""
     try:
         resultado = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
@@ -40,9 +38,9 @@ def particion_existe(base_dir: Path, tipo: str, anio: int, trimestre: int) -> bo
 
 def particion_desactualizada(origen: Path, destino: Path) -> bool:
     """`True` si `destino` no existe, o si `origen` es más nuevo (mtime) que
-    `destino` -- regla de staleness entre capas consecutivas del pipeline
-    (ej. `01_armonizado` -> `02_nucleo`). Si falta `origen` (no debería pasar
-    en uso normal) no se marca desactualizado por esa sola ausencia."""
+    `destino`."""
+    # Si falta `origen` no se marca desactualizado por esa sola ausencia
+    # (no debería pasar en uso normal: `destino` depende de `origen`).
     if not destino.exists():
         return True
     if not origen.exists():
@@ -103,10 +101,8 @@ def actualizar_resumen_trimestre(archivo: Path, filas_nuevas: list[dict],
     df_final.to_csv(archivo, index=False)
 
 def cargar_hogar(anio: int, trimestre: int, columnas: list[str], ruta_nucleo: Path) -> pd.DataFrame | None:
-    """Lee la partición `hogar` de `ruta_nucleo` (ej. `data/02_nucleo`) y se queda
-    solo con las `columnas` pedidas que existan -- `None` si la partición no existe.
-    Uso general: reemplaza la función local `cargar_hogar` que las notebooks 03/04/05/06
-    tenían duplicada cada una con su propia lista de columnas."""
+    """Lee la partición `hogar` de `ruta_nucleo` y se queda solo con las
+    `columnas` pedidas que existan. `None` si la partición no existe."""
     p = ruta_particion(ruta_nucleo, "hogar", anio, trimestre)
     if not p.exists():
         return None
@@ -118,13 +114,8 @@ def cargar_individual(
     anio: int, trimestre: int, columnas: list[str],
     ruta_nucleo: Path, ruta_armonizado: Path | None = None,
 ) -> pd.DataFrame | None:
-    """Lee la partición `individual` de `ruta_nucleo`, igual que `cargar_hogar`. Si se
-    pasa `ruta_armonizado` (ej. `data/01_armonizado`), además mergea `NIVEL_ED` desde esa
-    capa -- todavía no está en `ESQUEMA_NUCLEO` de una corrida real. `ruta_armonizado=None`
-    omite el merge (ej. 06_poblacion_riesgo, que no usa `nivel_ed`).
-
-    Uso general: reemplaza la función local `cargar_individual` que las notebooks
-    03/04/05/06 tenían duplicada cada una, idéntica salvo la lista de columnas."""
+    """Igual que `cargar_hogar`, para `individual`. Si se pasa
+    `ruta_armonizado`, además mergea `NIVEL_ED` desde esa capa."""
     p = ruta_particion(ruta_nucleo, "individual", anio, trimestre)
     if not p.exists():
         return None

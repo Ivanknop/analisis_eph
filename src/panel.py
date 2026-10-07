@@ -1,7 +1,5 @@
-"""Panel de hogares: vinculación de viviendas/hogares entre un trimestre de
-origen `t` y un trimestre de destino `t+h`, sobre el Parquet ya tipado del
-notebook 01b. No construye ninguna etiqueta de deterioro -- solo el panel
-vinculado con sus flags (ver `notebooks/02_panel_hogares.ipynb`).
+"""Panel de hogares: vinculación de viviendas/hogares entre un trimestre
+origen `t` y un destino `t+h`, sobre el Parquet tipado del notebook 01b.
 """
 # Todas las funciones son puras (reciben DataFrames/sets, no tocan `data/`)
 # para poder testearlas con fixtures sintéticas chicas (`tests/test_panel.py`).
@@ -17,6 +15,11 @@ import pandas as pd
 # no en 0 (6.3%) -- ver diagnóstico de la tarea. h=1 cubre 92.92% de los
 # componentes con mismo sexo; h=4 cubre 93.22%.
 TOLERANCIA_EDAD_POR_HORIZONTE = {1: (-1, 1), 4: (0, 2)}
+
+# `CH06` nunca vale 0 en los 86 trimestres de `01_armonizado/individual` -- los
+# menores de 1 año están codificados `-1` (59.913 casos en toda la serie, no
+# documentado en el codebook). `contar_nacimientos` usa estos códigos, no `0`/`1`.
+CODIGOS_NACIMIENTO_POR_HORIZONTE = {1: (-1,), 4: (-1, 1)}
 
 # Fechas públicas de asunción (día de la asunción, no del trimestre) --
 # [confirmado, hecho público]. La conversión a "trimestre de mandato" es una
@@ -59,8 +62,7 @@ def mandato_presidencial(anio: int, trimestre: int) -> str:
 
 def regimen_ingreso_par(historico_t: bool, historico_th: bool) -> str:
     """`"historico"` si ambos extremos son pre-2016, `"regular"` si ambos son
-    post-2016, `"mixto"` si el par cruza el corte (empíricamente posible para
-    algunos pares `h=4` alrededor de 2015-2016, ver plan de la tarea)."""
+    post-2016, `"mixto"` si el par cruza el corte."""
     if historico_t and historico_th:
         return "historico"
     if not historico_t and not historico_th:
@@ -96,10 +98,9 @@ def vincular_hogares(hogar_t: pd.DataFrame, hogar_th: pd.DataFrame) -> pd.DataFr
 
 def clasificar_viviendas_no_vinculadas(hogar_t: pd.DataFrame, hogar_th: pd.DataFrame,
                                         pares_hogar: pd.DataFrame) -> pd.DataFrame:
-    """Por cada vivienda (`CODUSU`) presente en `t`: `"vinculada"` (tiene un
-    hogar con match exacto en `t+h`), `"hogar_reemplazado"` (la vivienda
-    sigue en `t+h` pero ningún hogar matcheó exacto) o `"vivienda_sin_par"`
-    (la vivienda ya no está en `t+h`)."""
+    """Por vivienda (`CODUSU`) presente en `t`: `"vinculada"`,
+    `"hogar_reemplazado"` (sigue en `t+h`, ningún hogar matcheó exacto) o
+    `"vivienda_sin_par"` (ya no está en `t+h`)."""
     codusu_th = set(hogar_th["CODUSU"])
     codusu_vinculadas = set(pares_hogar["CODUSU"])
     resultado = hogar_t[["CODUSU"]].drop_duplicates().reset_index(drop=True)
@@ -113,9 +114,8 @@ def clasificar_viviendas_no_vinculadas(hogar_t: pd.DataFrame, hogar_th: pd.DataF
 
 def validar_jefe(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                   pares_hogar: pd.DataFrame) -> pd.DataFrame:
-    """Para cada hogar vinculado (mismo `CODUSU`+`NRO_HOGAR` en ambos lados),
-    compara el/la jefe/a (`CH03==1`) de cada lado. `jefe_ambiguo=True` si algún
-    lado no tiene exactamente una persona con `CH03==1`."""
+    """Por hogar vinculado, compara el/la jefe/a (`CH03==1`) de cada lado.
+    `jefe_ambiguo=True` si algún lado no tiene exactamente un/a jefe/a."""
     # `cambio_jefatura` es un flag INDEPENDIENTE (no entra en `identidad_nucleo`):
     # un cambio de sexo en la jefatura es un evento real y esperable (jefe/a
     # que se va, pareja que pasa a encabezar el hogar), no evidencia de que el
@@ -165,9 +165,8 @@ def validar_jefe(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
 
 def emparejar_componentes(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                            pares_hogar: pd.DataFrame) -> pd.DataFrame:
-    """Empareja TODOS los miembros (no solo jefe/a) de cada hogar vinculado por
-    número de `COMPONENTE` presente en ambos lados. Formato largo: una fila por
-    componente matcheado, con `mismo_sexo` y `diferencia_edad`."""
+    """Empareja todos los miembros de cada hogar vinculado por `COMPONENTE`.
+    Formato largo: una fila por match, con `mismo_sexo`/`diferencia_edad`."""
     # Diagnóstico PREVIO (`tasa_coincidencia_componente`): ¿alcanza con matchear
     # por número de COMPONENTE para identificar a la misma persona? La
     # identidad del panel (`identidad_nucleo`) y el conteo de altas/bajas
@@ -188,9 +187,8 @@ def emparejar_componentes(individual_t: pd.DataFrame, individual_th: pd.DataFram
 
 
 def tasa_coincidencia_componente(componentes_emparejados: pd.DataFrame) -> dict:
-    """Diagnóstico PREVIO a usar `COMPONENTE` como base de matcheo de miembros
-    (pedido explícito de la tarea): ¿de verdad identifica a la misma persona
-    entre visitas? Se reporta el número, no se asume de antemano."""
+    """Diagnóstico: ¿`COMPONENTE` identifica a la misma persona entre
+    visitas? Se reporta el número, no se asume de antemano."""
     n = len(componentes_emparejados)
     tasa_mismo_sexo = componentes_emparejados["mismo_sexo"].mean() if n else None
     return {
@@ -202,11 +200,9 @@ def tasa_coincidencia_componente(componentes_emparejados: pd.DataFrame) -> dict:
 
 def identidad_nucleo(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                       pares_hogar: pd.DataFrame, h: int) -> pd.DataFrame:
-    """Identidad del hogar-par por núcleo (D10): `identidad_confirmada` es
-    `True` si el/la jefe/a de `t` aparece en el núcleo de `t+h` (`CH03` 1 o 2
-    -- permite intercambio de rol) con sexo y edad dentro de
-    `TOLERANCIA_EDAD_POR_HORIZONTE[h]`. `NA` si el/la jefe/a de `t` es
-    ambiguo/a."""
+    """Identidad del hogar-par por núcleo (D10): `True` si el/la jefe/a de
+    `t` aparece en el núcleo de `t+h` (`CH03` 1 o 2) dentro de la ventana
+    de edad. `NA` si el/la jefe/a de `t` es ambiguo/a."""
     # Reemplaza la clasificación por proporción de componentes (D9): esa regla
     # exigía que coincidiera casi TODO el hogar, lo que penalizaba
     # mecánicamente a los hogares grandes (ver D10) sin relación con si el
@@ -244,8 +240,7 @@ def identidad_nucleo(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
 
 
 def _consumir_offset(restante_t: pd.Series, restante_th: pd.Series, offset: int) -> tuple[pd.Series, pd.Series]:
-    """Empareja lo que pueda entre `restante_t`/`restante_th` (Series indexadas
-    por `CODUSU, NRO_HOGAR, CH04, CH06`, valor = cantidad sin matchear) con
+    """Empareja lo que pueda entre `restante_t`/`restante_th` con
     `CH06_th == CH06_t + offset`, y resta lo matcheado de ambos lados."""
     t_df = restante_t[restante_t > 0].reset_index()
     if t_df.empty:
@@ -268,10 +263,8 @@ def _consumir_offset(restante_t: pd.Series, restante_th: pd.Series, offset: int)
 
 def contar_altas_bajas(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                         pares_hogar: pd.DataFrame, h: int) -> pd.DataFrame:
-    """`n_altas`/`n_bajas` de integrantes por hogar-par (D10, composición como
-    flag aparte de la identidad): empareja personas por sexo y edad dentro de
-    `TOLERANCIA_EDAD_POR_HORIZONTE[h]` -- no por `COMPONENTE` (ver D10: la
-    reasignación de `COMPONENTE` solo explica ~7% de los desajustes)."""
+    """`n_altas`/`n_bajas` de integrantes por hogar-par (D10): empareja
+    personas por sexo+edad, no por `COMPONENTE`."""
     # Matching goloso por offset de edad dentro de la ventana, probando primero
     # el offset más cercano al centro (el desplazamiento esperado) -- no
     # garantiza el matching máximo exacto en el caso raro de que dos personas
@@ -305,11 +298,41 @@ def contar_altas_bajas(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
     return resultado
 
 
+def contar_nacimientos(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
+                        pares_hogar: pd.DataFrame, h: int) -> pd.DataFrame:
+    """Nacimientos por hogar-par (D19): entre las altas que detecta
+    `contar_altas_bajas`, cuenta las de edad `CODIGOS_NACIMIENTO_POR_HORIZONTE[h]`."""
+    minimo, maximo = TOLERANCIA_EDAD_POR_HORIZONTE[h]
+    claves = pares_hogar[["CODUSU", "NRO_HOGAR_t", "NRO_HOGAR_th"]].drop_duplicates()
+
+    t_rel = individual_t.merge(claves[["CODUSU", "NRO_HOGAR_t"]].drop_duplicates(),
+                                left_on=["CODUSU", "NRO_HOGAR"], right_on=["CODUSU", "NRO_HOGAR_t"])
+    th_rel = individual_th.merge(claves[["CODUSU", "NRO_HOGAR_th"]].drop_duplicates(),
+                                  left_on=["CODUSU", "NRO_HOGAR"], right_on=["CODUSU", "NRO_HOGAR_th"])
+
+    restante_t = t_rel.groupby(["CODUSU", "NRO_HOGAR_t", "CH04", "CH06"]).size().rename("restante")
+    restante_t.index.names = ["CODUSU", "NRO_HOGAR", "CH04", "CH06"]
+    restante_th = th_rel.groupby(["CODUSU", "NRO_HOGAR_th", "CH04", "CH06"]).size().rename("restante")
+    restante_th.index.names = ["CODUSU", "NRO_HOGAR", "CH04", "CH06"]
+
+    centro = round((minimo + maximo) / 2)
+    for offset in sorted(range(minimo, maximo + 1), key=lambda o: abs(o - centro)):
+        restante_t, restante_th = _consumir_offset(restante_t, restante_th, offset)
+
+    altas = restante_th[restante_th > 0].reset_index()
+    es_nacimiento = altas["CH06"].isin(CODIGOS_NACIMIENTO_POR_HORIZONTE[h])
+    n_nacimientos = altas.loc[es_nacimiento].groupby(["CODUSU", "NRO_HOGAR"])["restante"].sum().rename("n_nacimientos")
+
+    resultado = claves.copy()
+    resultado = resultado.merge(n_nacimientos, left_on=["CODUSU", "NRO_HOGAR_th"], right_index=True, how="left")
+    resultado["n_nacimientos"] = resultado["n_nacimientos"].fillna(0).astype(int)
+    return resultado[["CODUSU", "NRO_HOGAR_t", "NRO_HOGAR_th", "n_nacimientos"]]
+
+
 def _hay_ocupado(individual: pd.DataFrame) -> pd.DataFrame:
-    """Por hogar (`CODUSU, NRO_HOGAR`), `True` si algún componente tiene
-    `ESTADO==1`. `groupby(...).apply(lambda ...)` (versión anterior) tardaba
-    ~2.3s por trimestre por el overhead de Python por grupo -- con `.any()`
-    directo sobre la serie booleana (sin `.apply`) es ~100x más rápido."""
+    """Por hogar, `True` si algún componente tiene `ESTADO==1`."""
+    # `.any()` directo sobre la serie booleana, sin `.apply`: ~100x más rápido
+    # que `groupby(...).apply(lambda ...)` (medido: ~2.3s/trimestre).
     return (individual["ESTADO"] == 1).groupby(
         [individual["CODUSU"], individual["NRO_HOGAR"]]
     ).any().reset_index(name="hay_ocupado")
@@ -319,9 +342,8 @@ def construir_pares(hogar_t: pd.DataFrame, hogar_th: pd.DataFrame,
                      individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                      anio_t: int, trimestre_t: int, h: int,
                      historico_t: bool, historico_th: bool) -> pd.DataFrame:
-    """Arma la tabla final de pares hogar-a-hogar para el trimestre de origen
-    `(anio_t, trimestre_t)` y horizonte `h`, sin etiqueta -- ver el esquema de
-    columnas en `notebooks/02_panel_hogares.ipynb`."""
+    """Tabla final de pares hogar-a-hogar para `(anio_t, trimestre_t)` y
+    horizonte `h`, sin etiqueta (ver esquema en el notebook 02)."""
     # Requiere `hogar_*` con `CODUSU, NRO_HOGAR, ingreso_no_declarado` e
     # `individual_*` con `CODUSU, NRO_HOGAR, COMPONENTE, CH03, CH04, CH06, ESTADO`.
     anio_th, trimestre_th = sumar_trimestres(anio_t, trimestre_t, h)

@@ -1,0 +1,11 @@
+corte,categoria,n_personas,pct_inasistencia_escolar,pct_termino,diferencia_ic95_low,diferencia_ic95_high
+quintil,Q1,402497.0,4.9,0.4,,
+quintil,Q2,206768.0,3.0,0.7,,
+quintil,Q3,121380.0,2.1,0.9,,
+quintil,Q4,81580.0,1.5,1.0,,
+quintil,Q5,40063.0,1.3,1.2,,
+quintil,TODOS,925686.0,3.5,0.7,,
+ancla_con_deficit,con_deficit,118748.0,6.96,,3.77,4.26
+ancla_con_deficit,sin_deficit,806938.0,2.94,,,
+ancla_con_deficit_estandarizada_quintil,con_deficit_observado,118748.0,6.96,,2.93,3.42
+ancla_con_deficit_estandarizada_quintil,sin_deficit_estandarizado,,3.78,,,

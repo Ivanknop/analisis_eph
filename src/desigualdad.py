@@ -16,9 +16,9 @@ def _a_float(valores) -> np.ndarray:
 
 
 def _valores_y_pesos(valores, pesos) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Devuelve `(x, w, mascara_valida)` ya en float64. Valida: filas con valor o peso
-    no finito, o con peso <= 0, quedan fuera de la mascara; un valor negativo entre las
-    filas validas es `ValueError` (el Gini no esta definido con valores negativos)."""
+    """`(x, w, mascara_valida)` en float64. Filas con valor/peso no finito o
+    peso <= 0 quedan fuera de la mascara; un negativo entre las validas
+    levanta `ValueError`."""
     x = _a_float(valores)
     w = np.ones_like(x) if pesos is None else _a_float(pesos)
     if w.shape != x.shape:
@@ -40,10 +40,9 @@ def _gini_ordenado(x_ordenado: np.ndarray, w_ordenado: np.ndarray) -> float:
 
 
 def gini_ponderado(valores, pesos=None) -> float:
-    """Coeficiente de Gini de `valores` con `pesos` (por defecto, todos 1). Los ceros
-    cuentan como parte de la distribucion; los pesos <= 0 y los valores/pesos no finitos
-    se excluyen. Devuelve `nan` si no queda masa (`sum(w*x) <= 0`) y levanta `ValueError`
-    con valores negativos."""
+    """Gini de `valores` con `pesos` (default: todos 1). Los ceros cuentan en
+    la distribucion; pesos <= 0 y valores/pesos no finitos se excluyen.
+    `nan` si no queda masa; `ValueError` con negativos."""
     # Estimador exacto del area de Lorenz para datos ponderados (no la version con
     # correccion de sesgo n/(n-1)): es el que reproduce la serie publicada por INDEC y
     # el unico invariante a replicacion -- partir un peso en dos no cambia el resultado,
@@ -57,10 +56,10 @@ def gini_ponderado(valores, pesos=None) -> float:
 
 
 def normalizar_por_media_ponderada(valores, pesos=None) -> np.ndarray:
-    """`valores / media_ponderada(valores, pesos)`, con `nan` donde el valor o el peso no
-    es valido. Devuelve todo `nan` si la media ponderada no es positiva. Permite juntar
-    trimestres de distinto nivel de precios en una misma ventana sin que la inflacion
-    entre trimestres se cuele como dispersion."""
+    """`valores / media_ponderada(valores, pesos)`, con `nan` donde el valor
+    o el peso no es valido, o donde la media ponderada no es positiva."""
+    # Permite juntar trimestres de distinto nivel de precios en una misma
+    # ventana sin que la inflacion entre trimestres se cuele como dispersion.
     x, w, valida = _valores_y_pesos(valores, pesos)
     peso_total = w[valida].sum()
     media = float((w[valida] * x[valida]).sum() / peso_total) if peso_total > 0 else float("nan")
@@ -74,10 +73,9 @@ def gini_ic_bootstrap_cluster(
     tabla: pd.DataFrame, columna_valor: str, columna_peso: str, columna_cluster: str,
     n_boot: int = 400, seed: int = 42, batch: int = 100,
 ) -> dict:
-    """Gini ponderado de `columna_valor` con `columna_peso`, mas IC95% por bootstrap de
-    cluster (`columna_cluster`, pesos Poisson(1) i.i.d., `n_boot` replicas). Mismas
-    exclusiones que `gini_ponderado`. Devuelve `gini`, `gini_ic95_low`, `gini_ic95_high`,
-    `n_filas`, `n_clusters`, `peso_total`."""
+    """Gini ponderado de `columna_valor`/`columna_peso` mas IC95% por
+    bootstrap de cluster (`columna_cluster`, `n_boot` replicas). Mismas
+    exclusiones que `gini_ponderado`."""
     # Mismo mecanismo Poisson(1) por cluster que src/bootstrap.py, reimplementado y no
     # importado: las internals de ese modulo agregan conteos N/S de un evento binario por
     # cluster, y el Gini necesita el vector de valores completo -- no se puede expresar

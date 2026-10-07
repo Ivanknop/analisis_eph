@@ -117,10 +117,9 @@ def _nombre_archivo_historico(anio: int, trimestre: int) -> str:
 
 
 def _extraer_historico(archivo_path: Path, destino: Path) -> None:
-    """Extrae un archivo histórico DBF (.zip/.rar) a `destino`. Los `.zip`
-    (2003-2013, y 2014T2 -- ver `_EXTENSION_HISTORICA`) se extraen con el
-    módulo estándar `zipfile`, sin depender de herramientas externas. Los
-    `.rar` (resto de 2014-2015) sí necesitan `unar` instalado en el sistema."""
+    """Extrae un archivo histórico DBF (.zip/.rar) a `destino`."""
+    # Los .zip se extraen con el módulo estándar `zipfile`, sin dependencias
+    # externas. Los .rar sí necesitan `unar` instalado en el sistema.
     if archivo_path.suffix.lower() == ".zip":
         with zipfile.ZipFile(archivo_path) as z:
             z.extractall(destino)

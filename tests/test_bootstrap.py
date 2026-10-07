@@ -1,5 +1,5 @@
-"""Tests de `src/bootstrap.py`. Todo con DataFrames sintéticos chicos armados a mano --
-nada acá toca `data/` real (mismo criterio que tests/test_panel.py)."""
+"""Tests de `src/bootstrap.py` con DataFrames sintéticos chicos, sin tocar
+`data/` real."""
 import numpy as np
 import pandas as pd
 import pytest
@@ -8,9 +8,8 @@ from bootstrap import diferencia_dos_grupos_bootstrap_cluster, estandarizar_dife
 
 
 def _tabla_dos_grupos(n_a: int, p_a: float, n_b: float, p_b: float) -> pd.DataFrame:
-    """Un cluster por fila (`cluster_id` único), evento determinístico: exactamente
-    `round(n*p)` eventos `True` en cada grupo, sin aleatoriedad -- la tasa observada
-    (no la del bootstrap) queda exacta, conocida de antemano."""
+    """Un cluster por fila, evento determinístico: exactamente `round(n*p)`
+    eventos `True` en cada grupo -- la tasa observada queda exacta."""
     filas = []
     s_a = round(n_a * p_a)
     for i in range(n_a):
@@ -32,10 +31,8 @@ class TestDiferenciaDosGruposBootstrapCluster:
         assert resultado["n_a"] == 2000 and resultado["n_b"] == 2000 and resultado["n_clusters"] == 4000
 
     def test_ancho_del_ic_del_orden_del_analitico(self):
-        """Caso que habría atrapado el bug original: con cluster=1 fila, el bootstrap de
-        cluster se aproxima al bootstrap i.i.d. estándar, cuyo ancho converge al de la
-        diferencia de dos proporciones binomiales -- el bug daba un ancho ~30x más chico
-        que esto (colapsaba las réplicas en vez de los clusters)."""
+        """Con cluster=1 fila, el ancho del IC converge al analítico de dos
+        proporciones binomiales -- el bug original daba ~30x más chico."""
         n_a, p_a, n_b, p_b = 2000, 0.30, 2000, 0.50
         tabla = _tabla_dos_grupos(n_a, p_a, n_b, p_b)
         resultado = diferencia_dos_grupos_bootstrap_cluster(
@@ -67,10 +64,8 @@ class TestDiferenciaDosGruposBootstrapCluster:
         assert np.isnan(resultado["diferencia"])
 
     def test_grupo_booleano_true_false(self):
-        """`grupo_a`/`grupo_b` booleanos (uso real en notebooks/06_poblacion_riesgo.ipynb,
-        columna_grupo='ancla_con_deficit_t') -- `df[[True, False]]` dispara la detección
-        de "lista de bool = máscara" de pandas en vez de seleccionar columnas; regresión
-        específica para ese caso."""
+        """`grupo_a`/`grupo_b` booleanos -- regresión de un caso donde
+        `df[[True, False]]` dispara la detección de máscara de pandas."""
         filas = []
         for i in range(300):
             filas.append({"cluster_id": f"c{i}", "con_deficit": True, "evento": i < 90})  # 30%
@@ -93,9 +88,8 @@ class TestDiferenciaDosGruposBootstrapCluster:
 
 class TestEstandarizarDiferenciaBootstrap:
     def _tabla_estandarizacion(self) -> pd.DataFrame:
-        """con: estrato1 n=300 s=150 (50%), estrato2 n=100 s=50 (50%) -> obs=50%.
-        sin: estrato1 n=200 s=40 (20%), estrato2 n=200 s=160 (80%).
-        Estandarizado = (300*20 + 100*80)/400 = 35 -> diferencia esperada = 50-35 = 15."""
+        """con: 50% obs. sin: 20%/80% por estrato. Estandarizado = 35,
+        diferencia esperada = 15."""
         filas = []
         contador = 0
 
