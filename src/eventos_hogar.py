@@ -6,15 +6,100 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from intensificacion import emparejar_activos
 from panel import TOLERANCIA_EDAD_POR_HORIZONTE
-from perfil_hogar import clasificar_situacion_escolar, kleene_any_hogar, to_bool
+from perfil_hogar import clasificar_precariedad_persona, clasificar_situacion_escolar, kleene_any_hogar, to_bool
 
 # `CAT_INAC`/`CH10` se traen de `01_armonizado` ad hoc (fuera de
 # `ESQUEMA_NUCLEO`), como `NIVEL_ED` en `pipeline_meta`.
 
 # PENDIENTE de confirmación de Iván (D19).
 EDAD_CORTE_MENOR = 18
+
+
+def _consumir_offset(restante_t: pd.Series, restante_th: pd.Series, offset: int) -> tuple[pd.Series, pd.Series]:
+    t_df = restante_t[restante_t > 0].reset_index()
+    if t_df.empty:
+        return restante_t, restante_th
+    t_df["CH06_buscada"] = t_df["CH06"] + offset
+    th_df = restante_th[restante_th > 0].reset_index().rename(columns={"CH06": "CH06_buscada", "restante": "restante_th"})
+    if th_df.empty:
+        return restante_t, restante_th
+    combinado = t_df.merge(th_df, on=["CODUSU", "NRO_HOGAR", "CH04", "CH06_buscada"], how="inner")
+    if combinado.empty:
+        return restante_t, restante_th
+    combinado["matched"] = combinado[["restante", "restante_th"]].min(axis=1)
+    resta_t = combinado.set_index(["CODUSU", "NRO_HOGAR", "CH04", "CH06"])["matched"]
+    restante_t = restante_t.subtract(resta_t, fill_value=0).rename("restante")
+    resta_th = combinado.set_index(["CODUSU", "NRO_HOGAR", "CH04", "CH06_buscada"])["matched"]
+    resta_th.index.names = restante_th.index.names
+    restante_th = restante_th.subtract(resta_th, fill_value=0).rename("restante")
+    return restante_t, restante_th
+
+
+def _activos(individual: pd.DataFrame, columnas_extra: tuple[str, ...] = ()) -> pd.DataFrame:
+    estado = pd.to_numeric(individual["ESTADO"], errors="coerce")
+    columnas = ["CODUSU", "NRO_HOGAR", "CH04", "CH06", *columnas_extra]
+    activo = individual.loc[estado.isin([1, 2]), columnas].copy()
+    activo["categoria_precariedad"] = clasificar_precariedad_persona(individual).loc[activo.index]
+    return activo
+
+
+def _asignar_estado(rel: pd.DataFrame, col_nro_hogar: str, estables_por_bucket: pd.Series,
+                     tamanio_original: pd.Series, etiqueta_no_estable: str) -> pd.DataFrame:
+    """Por bucket (hogar, `CH04`, `CH06`): `"estable"` a las primeras
+    `estables_por_bucket` filas, `etiqueta_no_estable` al resto. Marca
+    `empate` si `tamanio_original > 1`."""
+    # En un bucket con empate, el orden de asignación es arbitrario -- no identifica
+    # una transición real, solo cuenta cuántos activos del bucket están estables
+    # para el agregado `share_precario` (la matriz de transición, que sí necesita
+    # identidad, excluye los buckets con empate).
+    rel = rel.copy()
+    orden = rel.groupby(["CODUSU", col_nro_hogar, "CH04", "CH06"]).cumcount()
+    idx = pd.MultiIndex.from_frame(
+        rel[["CODUSU", col_nro_hogar, "CH04", "CH06"]].rename(columns={col_nro_hogar: "NRO_HOGAR"})
+    )
+    n_estables = estables_por_bucket.reindex(idx).fillna(0).to_numpy()
+    tamanio = tamanio_original.reindex(idx).fillna(0).to_numpy()
+    rel["estado_persona"] = np.where(orden.to_numpy() < n_estables, "estable", etiqueta_no_estable)
+    rel["empate"] = tamanio > 1
+    return rel
+
+
+def emparejar_activos(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
+                       pares_hogar: pd.DataFrame, h: int,
+                       columnas_extra_th: tuple[str, ...] = ()) -> dict[str, pd.DataFrame]:
+    """Empareja activos por sexo+edad (ventana D10). Devuelve
+    `{"t": ..., "th": ...}` con `categoria_precariedad`, `estado_persona`
+    (`"estable"`/`"alta"`/`"baja"`) y `empate`."""
+    minimo, maximo = TOLERANCIA_EDAD_POR_HORIZONTE[h]
+    claves = pares_hogar[["CODUSU", "NRO_HOGAR_t", "NRO_HOGAR_th"]].drop_duplicates()
+
+    t_rel = _activos(individual_t).merge(
+        claves[["CODUSU", "NRO_HOGAR_t"]].drop_duplicates(),
+        left_on=["CODUSU", "NRO_HOGAR"], right_on=["CODUSU", "NRO_HOGAR_t"],
+    ).drop(columns=["NRO_HOGAR"])
+    th_rel = _activos(individual_th, columnas_extra_th).merge(
+        claves[["CODUSU", "NRO_HOGAR_th"]].drop_duplicates(),
+        left_on=["CODUSU", "NRO_HOGAR"], right_on=["CODUSU", "NRO_HOGAR_th"],
+    ).drop(columns=["NRO_HOGAR"])
+
+    bucket_t = t_rel.groupby(["CODUSU", "NRO_HOGAR_t", "CH04", "CH06"]).size().rename("restante")
+    bucket_t.index.names = ["CODUSU", "NRO_HOGAR", "CH04", "CH06"]
+    bucket_th = th_rel.groupby(["CODUSU", "NRO_HOGAR_th", "CH04", "CH06"]).size().rename("restante")
+    bucket_th.index.names = ["CODUSU", "NRO_HOGAR", "CH04", "CH06"]
+    tamanio_original_t, tamanio_original_th = bucket_t.copy(), bucket_th.copy()
+
+    restante_t, restante_th = bucket_t, bucket_th
+    centro = round((minimo + maximo) / 2)
+    for offset in sorted(range(minimo, maximo + 1), key=lambda o: abs(o - centro)):
+        restante_t, restante_th = _consumir_offset(restante_t, restante_th, offset)
+
+    estables_t = (tamanio_original_t - restante_t).rename("n_estables")
+    estables_th = (tamanio_original_th - restante_th).rename("n_estables")
+
+    t_rel = _asignar_estado(t_rel, "NRO_HOGAR_t", estables_t, tamanio_original_t, "baja")
+    th_rel = _asignar_estado(th_rel, "NRO_HOGAR_th", estables_th, tamanio_original_th, "alta")
+    return {"t": t_rel, "th": th_rel, "claves": claves, "h": h}
 
 
 def calcular_se_jubila(individual_t: pd.DataFrame, individual_th: pd.DataFrame,

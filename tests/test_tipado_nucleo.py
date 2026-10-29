@@ -146,7 +146,7 @@ class TestIngresoNoDeclarado:
         assert bool(resultado.iloc[0]) is False
 
     def test_historico_da_na(self):
-        hogar = pd.DataFrame({"CODUSU": ["1"], "NRO_HOGAR": [1]})  # sin PONDIH
+        hogar = pd.DataFrame({"CODUSU": ["1"], "NRO_HOGAR": [1]})
         resultado = ingreso_no_declarado(hogar, es_historico=True)
         assert pd.isna(resultado.iloc[0])
 

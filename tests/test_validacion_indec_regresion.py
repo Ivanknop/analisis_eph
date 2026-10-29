@@ -67,7 +67,7 @@ def _clasificar(desvio: float) -> str:
 
 @REQUIERE_DATOS_REALES
 def test_reproduce_la_distribucion_de_desvios_ya_validada():
-    # Igual que la sección 4 del notebook 08: las dos ventanas aportan a la
+    # Igual que la sección 4 del notebook 05: las dos ventanas aportan a la
     # distribución 19/4/1 (D25/D26) -- (a) sola da 12/12 aceptable, el
     # desvío viene todo de (b).
     canasta_por_metodo = {

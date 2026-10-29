@@ -3,7 +3,34 @@ se agregan solo para `clasificar_situacion_escolar` (D22), no retroactivos a las
 funciones existentes."""
 import pandas as pd
 
-from perfil_hogar import clasificar_situacion_escolar
+from perfil_hogar import clasificar_precariedad_persona, clasificar_situacion_escolar
+
+
+def _individual(filas):
+    columnas = ["CODUSU", "NRO_HOGAR", "COMPONENTE", "CH04", "CH06", "ESTADO", "CAT_OCUP", "PP07H"]
+    return pd.DataFrame(filas, columns=columnas)
+
+
+class TestClasificarPrecariedadPersona:
+    def test_formal(self):
+        ind = _individual([["V1", 1, 1, 1, 30, 1, 3, 1]])
+        assert clasificar_precariedad_persona(ind).iloc[0] == "formal"
+
+    def test_informal_asalariado(self):
+        ind = _individual([["V1", 1, 1, 1, 30, 1, 3, 2]])
+        assert clasificar_precariedad_persona(ind).iloc[0] == "informal_asalariado"
+
+    def test_patron(self):
+        ind = _individual([["V1", 1, 1, 1, 30, 1, 1, pd.NA]])
+        assert clasificar_precariedad_persona(ind).iloc[0] == "patron"
+
+    def test_cuenta_propia(self):
+        ind = _individual([["V1", 1, 1, 1, 30, 1, 2, pd.NA]])
+        assert clasificar_precariedad_persona(ind).iloc[0] == "cuenta_propia"
+
+    def test_desocupado(self):
+        ind = _individual([["V1", 1, 1, 1, 30, 2, pd.NA, pd.NA]])
+        assert clasificar_precariedad_persona(ind).iloc[0] == "desocupado"
 
 
 class TestClasificarSituacionEscolar:

@@ -165,7 +165,18 @@ def construir_pares_distancia(distancia_t: pd.DataFrame, distancia_th: pd.DataFr
     resultado["direccion"] = clasificar_direccion(resultado["variacion_simetrica"])
     resultado["transicion"] = clasificar_transicion(resultado["pobre_t"], resultado["pobre_th"])
     # `identidad_confirmada` puede ser `False` (otro hogar en la misma vivienda,
-    # D10) sin que la fila se descarte -- `par_valido` marca cuáles sirven para
-    # medir variación real, sin perder las demás (quedan para auditar aparte).
-    resultado["par_valido"] = (resultado["identidad_confirmada"] == True) & resultado["variacion_simetrica"].notna()  # noqa: E712
+    # D10) sin que la fila se descarte -- `par_valido_*` marca cuáles sirven
+    # para medir variación real, sin perder las demás (quedan para auditar
+    # aparte). Dos filtros, uno por objetivo (cada uno exige que SU propia
+    # variación no sea nula -- no son intercambiables: `ITF=0` admite
+    # `variacion_simetrica` pero no `variacion_log`, que requiere `ITF>0` en
+    # ambas puntas). `par_valido` queda como alias de `par_valido_simetrica`
+    # (no se rompe ningún uso existente, ej. `06b_diagnosticos_trayectoria.ipynb`).
+    resultado["par_valido_simetrica"] = (
+        (resultado["identidad_confirmada"] == True) & resultado["variacion_simetrica"].notna()  # noqa: E712
+    )
+    resultado["par_valido_log"] = (
+        (resultado["identidad_confirmada"] == True) & resultado["variacion_log"].notna()  # noqa: E712
+    )
+    resultado["par_valido"] = resultado["par_valido_simetrica"]
     return resultado

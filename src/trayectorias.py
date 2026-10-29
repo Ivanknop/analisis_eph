@@ -125,15 +125,16 @@ def clasificar_patron_apariciones(claves_hogar_t0: pd.DataFrame, claves_hogar_t0
     return resultado
 
 
+def _eslabon(pares: pd.DataFrame, columna: str) -> pd.DataFrame:
+    return pares.rename(columns={"NRO_HOGAR_t": "NRO_HOGAR", "identidad_confirmada": columna})[
+        ["CODUSU", "NRO_HOGAR", "AGLOMERADO", columna]
+    ]
+
+
 def encadenar_trayectoria(pares_h1_t: pd.DataFrame, pares_h4_t: pd.DataFrame,
                            pares_h1_t4: pd.DataFrame) -> pd.DataFrame:
     """Encadena los 3 eslabones t->t+1, t->t+4 y t+4->t+5 por clave de
     hogar: intersección exacta de los 3, sin exigir `identidad_confirmada`."""
-    def _eslabon(pares: pd.DataFrame, columna: str) -> pd.DataFrame:
-        return pares.rename(columns={"NRO_HOGAR_t": "NRO_HOGAR", "identidad_confirmada": columna})[
-            ["CODUSU", "NRO_HOGAR", "AGLOMERADO", columna]
-        ]
-
     resultado = _eslabon(pares_h1_t, "identidad_confirmada_1").merge(
         _eslabon(pares_h4_t, "identidad_confirmada_h4"), on=CLAVE_HOGAR, how="inner")
     resultado = resultado.merge(_eslabon(pares_h1_t4, "identidad_confirmada_2"), on=CLAVE_HOGAR, how="inner")
@@ -175,11 +176,6 @@ def encadenar_dos_eslabones(pares_1: pd.DataFrame, pares_2: pd.DataFrame) -> pd.
     """Intersección por clave de hogar de 2 eslabones consecutivos de pares
     (no 3, a diferencia de `encadenar_trayectoria`) -- insumo de los diseños
     de panel dinámico de D13."""
-    def _eslabon(pares: pd.DataFrame, columna: str) -> pd.DataFrame:
-        return pares.rename(columns={"NRO_HOGAR_t": "NRO_HOGAR", "identidad_confirmada": columna})[
-            ["CODUSU", "NRO_HOGAR", "AGLOMERADO", columna]
-        ]
-
     resultado = _eslabon(pares_1, "identidad_confirmada_1").merge(
         _eslabon(pares_2, "identidad_confirmada_2"), on=CLAVE_HOGAR, how="inner")
     resultado["identidad_confirmada_ambos"] = resultado["identidad_confirmada_1"] & resultado["identidad_confirmada_2"]

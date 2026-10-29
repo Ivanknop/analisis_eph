@@ -131,3 +131,12 @@ def cargar_individual(
     else:
         ind["NIVEL_ED"] = pd.array([pd.NA] * len(ind), dtype="Int8")
     return ind
+
+
+def agregar_region(hogar: pd.DataFrame, ruta_armonizado: Path, anio: int, trimestre: int) -> pd.DataFrame:
+    """Mergea `REGION` en `hogar` desde `ruta_armonizado` -- `REGION` no está
+    en `02_nucleo` (fuera de `ESQUEMA_NUCLEO`), solo en `01_armonizado`."""
+    p = ruta_particion(ruta_armonizado, "hogar", anio, trimestre)
+    extra = pd.read_parquet(p, columns=["CODUSU", "NRO_HOGAR", "REGION"])
+    extra["REGION"] = pd.to_numeric(extra["REGION"], errors="coerce").astype("Int8")
+    return hogar.merge(extra, on=["CODUSU", "NRO_HOGAR"], how="left")

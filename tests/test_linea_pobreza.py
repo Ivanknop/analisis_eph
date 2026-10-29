@@ -1,5 +1,5 @@
 """Tests de `src/linea_pobreza.py`. Todo con DataFrames sintéticos chicos armados
-a mano -- mismo criterio que tests/test_cascada.py."""
+a mano -- mismo criterio que tests/test_panel.py."""
 import numpy as np
 import pandas as pd
 import pytest

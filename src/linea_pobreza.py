@@ -20,6 +20,13 @@ def _log_seguro(ratio: pd.Series) -> pd.Series:
     return pd.Series(log_valores, index=ratio.index, dtype="Float64")
 
 
+def tasa_ponderada(df: pd.DataFrame, columna: str, peso: str) -> float:
+    """Promedio ponderado de `columna` (booleana o 0/1) por `peso`, en
+    porcentaje -- descarta filas con `columna` o `peso` nulos."""
+    valido = df[columna].notna() & df[peso].notna()
+    return 100 * (df.loc[valido, columna].astype(float) * df.loc[valido, peso]).sum() / df.loc[valido, peso].sum()
+
+
 def calcular_distancia_lp(hogar: pd.DataFrame, individual: pd.DataFrame,
                            canasta_region_trimestre: pd.DataFrame) -> pd.DataFrame:
     """Distancia de cada hogar a la línea de pobreza/indigencia, por hogar

@@ -38,6 +38,48 @@ def calcular_situacion_laboral(individual: pd.DataFrame) -> pd.DataFrame:
     situacion[ag["formal"]] = "algun_asalariado_formal"
     return situacion.rename("situacion_laboral").reset_index()
 
+def calcular_info_jefe(individual: pd.DataFrame) -> pd.DataFrame:
+    """Por hogar: condición de actividad, sexo, `NIVEL_ED` y `PONDERA` del
+    jefe/a. `jefe_ambiguo=True` si hay 0 o más de 1 persona con `CH03==1`
+    en el hogar."""
+    jefe = individual[individual["CH03"] == 1]
+    conteo = jefe.groupby(["CODUSU", "NRO_HOGAR"]).size()
+    jefe_unico = jefe.drop_duplicates(["CODUSU", "NRO_HOGAR"]).set_index(["CODUSU", "NRO_HOGAR"])
+    estado = pd.to_numeric(jefe_unico["ESTADO"], errors="coerce")
+    condicion = pd.Series(pd.array([pd.NA] * len(jefe_unico), dtype="object"), index=jefe_unico.index)
+    condicion[estado == 1] = "ocupado"
+    condicion[estado == 2] = "desocupado"
+    condicion[estado == 3] = "inactivo"
+    resultado = pd.DataFrame({
+        "condicion_actividad_jefe": condicion, "pondera_jefe": jefe_unico["PONDERA"],
+        "nivel_ed_jefe": jefe_unico["NIVEL_ED"], "sexo_jefe": jefe_unico["CH04"],
+    }).reset_index()
+    resultado = resultado.merge(conteo.rename("n_jefe").reset_index(), on=["CODUSU", "NRO_HOGAR"], how="left")
+    resultado["jefe_ambiguo"] = resultado["n_jefe"].fillna(0).ne(1)
+    resultado = resultado.drop(columns=["n_jefe"])
+    resultado.loc[resultado["jefe_ambiguo"], ["condicion_actividad_jefe", "sexo_jefe"]] = pd.NA
+    return resultado
+
+
+def clasificar_precariedad_persona(individual: pd.DataFrame) -> pd.Series:
+    """Por persona activa: `"formal"`/`"informal_asalariado"`/`"patron"`/
+    `"cuenta_propia"`/`"desocupado"` según `CAT_OCUP`/`PP07H`/`ESTADO`. `NA`
+    si no se puede clasificar."""
+    # patrón y cuenta propia se distinguen (no "independiente" combinado) porque
+    # hay tratamientos de independientes que solo tratan a cuenta propia como
+    # precario (Beccaria et al. 2022; Mandelman y Montes 2009).
+    estado = pd.to_numeric(individual["ESTADO"], errors="coerce")
+    cat_ocup = pd.to_numeric(individual["CAT_OCUP"], errors="coerce")
+    pp07h = pd.to_numeric(individual["PP07H"], errors="coerce")
+    categoria = pd.Series(pd.array([pd.NA] * len(individual), dtype="object"), index=individual.index)
+    categoria[estado == 2] = "desocupado"
+    categoria[cat_ocup == 1] = "patron"
+    categoria[cat_ocup == 2] = "cuenta_propia"
+    categoria[(cat_ocup == 3) & (pp07h == 2)] = "informal_asalariado"
+    categoria[(cat_ocup == 3) & (pp07h == 1)] = "formal"
+    return categoria
+
+
 def calcular_decil(hogar: pd.DataFrame) -> pd.Series:
     '''Entero 1-10 desde DECCFR -- NA si no es un decil válido (decil_0/12/no parseable).'''
     deccfr = pd.to_numeric(hogar["DECCFR"], errors="coerce")

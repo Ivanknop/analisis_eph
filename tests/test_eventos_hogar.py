@@ -7,6 +7,7 @@ from eventos_hogar import (
     calcular_alta_activo_menor,
     calcular_se_jubila,
     calcular_tipologia_perceptores,
+    emparejar_activos,
 )
 
 
@@ -156,3 +157,45 @@ class TestCalcularTipologiaPerceptores:
         individual = _individual([["V1", 1, 1, 1, 30, 3, pd.NA, pd.NA, 4, pd.NA, pd.NA]])
         r = calcular_tipologia_perceptores(self._hogar(9), individual).iloc[0]
         assert pd.isna(r["tipologia_perceptores"])
+
+
+class TestEmparejarActivos:
+    def test_estado_persona_estable_alta_baja(self):
+        # A (formal) y B (informal) siguen estables; C (formal) se va (baja);
+        # D (informal) entra nueva (alta).
+        individual_t = _individual([
+            ["V1", 1, 1, 1, 30, 1, 3, 1, pd.NA, pd.NA, pd.NA],
+            ["V1", 1, 2, 2, 28, 1, 3, 2, pd.NA, pd.NA, pd.NA],
+            ["V1", 1, 3, 1, 50, 1, 3, 1, pd.NA, pd.NA, pd.NA],
+        ])
+        individual_th = _individual([
+            ["V1", 1, 1, 1, 31, 1, 3, 1, pd.NA, pd.NA, pd.NA],
+            ["V1", 1, 2, 2, 29, 1, 3, 2, pd.NA, pd.NA, pd.NA],
+            ["V1", 1, 4, 2, 20, 1, 3, 2, pd.NA, pd.NA, pd.NA],
+        ])
+        emparejados = emparejar_activos(individual_t, individual_th, _pares(), h=1)
+        assert (emparejados["t"]["estado_persona"] == "estable").sum() == 2
+        assert (emparejados["t"]["estado_persona"] == "baja").sum() == 1
+        assert (emparejados["th"]["estado_persona"] == "estable").sum() == 2
+        assert (emparejados["th"]["estado_persona"] == "alta").sum() == 1
+
+    def test_empate_marcado_cuando_hay_mas_de_un_candidato_por_bucket(self):
+        individual_t = _individual([
+            ["V1", 1, 1, 1, 30, 1, 3, 1, pd.NA, pd.NA, pd.NA],
+            ["V1", 1, 2, 1, 30, 1, 3, 2, pd.NA, pd.NA, pd.NA],  # mismo sexo+edad que el anterior
+        ])
+        individual_th = _individual([
+            ["V1", 1, 1, 1, 31, 1, 3, 1, pd.NA, pd.NA, pd.NA],
+            ["V1", 1, 2, 1, 31, 1, 3, 2, pd.NA, pd.NA, pd.NA],
+        ])
+        emparejados = emparejar_activos(individual_t, individual_th, _pares(), h=1)
+        assert emparejados["t"]["empate"].all()
+        assert emparejados["th"]["empate"].all()
+
+    def test_sin_empate_si_hay_un_solo_candidato_por_bucket(self):
+        individual_t = _individual([["V1", 1, 1, 1, 30, 1, 3, 1, pd.NA, pd.NA, pd.NA]])
+        individual_th = _individual([["V1", 1, 1, 1, 31, 1, 3, 2, pd.NA, pd.NA, pd.NA]])
+        emparejados = emparejar_activos(individual_t, individual_th, _pares(), h=1)
+        assert not emparejados["t"]["empate"].any()
+        assert emparejados["t"]["categoria_precariedad"].iloc[0] == "formal"
+        assert emparejados["th"]["categoria_precariedad"].iloc[0] == "informal_asalariado"

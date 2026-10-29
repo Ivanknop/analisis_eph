@@ -82,7 +82,7 @@ class TestAgregarTrimestral:
         # (D25: la serie oficial arranca en abril 2016) -- la fixture lo replica.
         r = agregar_trimestral(self._largo(), "cba_ae", "b_un_mes_atras")
         fila = r[(r["ANO4"] == 2016) & (r["TRIMESTRE"] == 2)].iloc[0]
-        assert fila["cba_ae"] == pytest.approx((100 + 110) / 2)  # solo abril y mayo
+        assert fila["cba_ae"] == pytest.approx((100 + 110) / 2)
         assert fila["canasta_ventana_parcial"] == True  # noqa: E712
 
 

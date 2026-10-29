@@ -1,0 +1,26 @@
+{
+  "metodologia_22_pobreza.pdf": {
+    "url": "https://www.indec.gob.ar/ftp/cuadros/sociedad/EPH_metodologia_22_pobreza.pdf",
+    "fecha_descarga_utc": "2026-10-19T13:25:18.515490+00:00",
+    "sha256": "9881625ced5f3ddeee5b54d0cb31c21838fb855287548c4878b67d5bcfc36a10",
+    "bytes": 2047228
+  },
+  "ipc_gba_historico_1943_2008_crudo.csv": {
+    "url": "https://infra.datos.gob.ar/catalog/sspm/dataset/178/distribution/178.1/download/ipc-historico.csv",
+    "fecha_descarga_utc": "2026-10-19T13:25:18.924868+00:00",
+    "sha256": "c65b1ce7936f87f63c50ceaecf545b804b3ba88911fc35b7dad172e5395cf5e4",
+    "bytes": 48014
+  },
+  "ipc_gba_base2008_capitulos_crudo.csv": {
+    "url": "https://infra.datos.gob.ar/catalog/sspm/dataset/96/distribution/96.5/download/indice-precios-al-consumidor-apertura-por-capitulos-base-2008-mensual.csv",
+    "fecha_descarga_utc": "2026-10-19T13:25:19.362779+00:00",
+    "sha256": "7fda36357c9edfb4b806a4e560ac365b8c36246f2c530727287a9efaa7599e5b",
+    "bytes": 23294
+  },
+  "ipc_provincias_cifra_2007_2018_crudo.xlsx": {
+    "url": "https://centrocifra.org.ar/wp-content/uploads/2023/08/IPC-Provincias-2007-2018.xlsx",
+    "fecha_descarga_utc": "2026-10-19T13:25:20.383506+00:00",
+    "sha256": "513a85366f2d9473e5a496e3979aba9cb5c7578dd38e12c6c9c54c3c612c77fb",
+    "bytes": 16087
+  }
+}

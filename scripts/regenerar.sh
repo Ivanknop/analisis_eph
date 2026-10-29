@@ -11,12 +11,8 @@
 #   - El resto de los insumos versionados de data/ (canastas_indec/, los CSV
 #     de data/meta/ listados como "D" en el README).
 #
-# Orden topológico (no es el orden numérico de los notebooks): 04 corre
-# antes que 03/05/06/07 porque 06 y 07 leen
-# data/meta/trayectorias_completitud_cohorte.csv, que escribe 04; 01 tiene
-# que haber corrido antes que 06 porque 06 lee
-# data/meta/inventario_variables.csv, que escribe 01. 00_explorar.ipynb no
-# entra: es de solo lectura.
+# Orden numérico de los notebooks (sin restricciones topológicas adicionales
+# por ahora). 00_explorar.ipynb no entra: es de solo lectura.
 #
 # Tiempo estimado con todo ya cacheado/descargado: ~1 hora (86 trimestres
 # completos). Ver duraciones reales de corridas anteriores en
@@ -33,15 +29,13 @@ NOTEBOOKS=(
     01_ingesta_armonizacion
     01b_capa_tipada_nucleo
     02_panel_hogares
-    04_trayectorias
     03_exploracion_descriptiva
-    05_composicion_quintiles
-    06_poblacion_riesgo
-    07_cascada_targets
-    08_distancia_linea_pobreza
-    08b_retropolacion_pobreza
-    09_trayectorias_distancia
-    09b_diagnosticos_trayectoria
+    04_trayectorias
+    05_distancia_linea_pobreza
+    05b_canastas_retropoladas
+    05c_distancia_historica
+    06_trayectorias_distancia
+    06b_diagnosticos_trayectoria
 )
 
 for nb in "${NOTEBOOKS[@]}"; do

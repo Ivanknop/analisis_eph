@@ -7,7 +7,15 @@ from __future__ import annotations
 
 import hashlib
 
+import numpy as np
 import pandas as pd
+
+from armonizacion import es_historico, trimestres_publicados
+
+# Rotación 2-2-2 del panel: ~50 pp de `vivienda_sin_par` son salida por diseño de
+# muestra, no atrición real (no se deriva un modelo de rotación por trimestre,
+# se reusa el valor ya confirmado).
+PCT_ROTACION_TEORICA = 50.0
 
 # Ventana de `diferencia_edad` aceptada como "misma persona" por horizonte --
 # PROVISORIA (D6). Centrada en el desplazamiento esperado, no en 0: en h=4
@@ -110,6 +118,70 @@ def clasificar_viviendas_no_vinculadas(hogar_t: pd.DataFrame, hogar_th: pd.DataF
     resultado.loc[en_th_no_vinculada, "estado_vinculacion"] = "hogar_reemplazado"
     resultado.loc[sin_par, "estado_vinculacion"] = "vivienda_sin_par"
     return resultado
+
+
+def tiene_destino_valido(anio_t: int, trimestre_t: int, h: int) -> bool:
+    """`False` si `t+h` no está publicado o si cruza el corte de formato de
+    `CODUSU` entre era histórica y regular: en ambos casos la vinculación no
+    mide atrición real."""
+    anio_th, trimestre_th = sumar_trimestres(anio_t, trimestre_t, h)
+    if (anio_th, trimestre_th) not in set(trimestres_publicados()):
+        return False
+    return es_historico(anio_t, trimestre_t) == es_historico(anio_th, trimestre_th)
+
+
+def clasificar_vinculacion_trimestre(hogar_t: pd.DataFrame, hogar_th: pd.DataFrame,
+                                      pares_hogar: pd.DataFrame,
+                                      pct_rotacion_teorica: float = PCT_ROTACION_TEORICA,
+                                      aglomerados_excluidos_atricion: frozenset[int] = frozenset()) -> dict:
+    """Resumen de `clasificar_viviendas_no_vinculadas` para un origen, a
+    nivel vivienda y a nivel hogar."""
+    clasificacion = clasificar_viviendas_no_vinculadas(hogar_t, hogar_th, pares_hogar)
+    conteos = clasificacion["estado_vinculacion"].value_counts()
+    n_viviendas_t = len(clasificacion)
+    # Nivel vivienda: vinculada/hogar_reemplazado/vivienda_sin_par siempre
+    # suman n_viviendas_t (ver assert abajo).
+    n_vinculada = int(conteos.get("vinculada", 0))
+    n_hogar_reemplazado = int(conteos.get("hogar_reemplazado", 0))
+    n_vivienda_sin_par = int(conteos.get("vivienda_sin_par", 0))
+    assert n_vinculada + n_hogar_reemplazado + n_vivienda_sin_par == n_viviendas_t
+
+    # % de vivienda_sin_par crudo y neto de la rotación teórica, excluyendo
+    # los aglomerados faltantes puntuales pasados por el llamador (no atrición real).
+    aglomerado_por_vivienda = hogar_t[["CODUSU", "AGLOMERADO"]].drop_duplicates("CODUSU")
+    clasificacion = clasificacion.merge(aglomerado_por_vivienda, on="CODUSU", how="left")
+    para_atricion = clasificacion[~clasificacion["AGLOMERADO"].isin(aglomerados_excluidos_atricion)]
+    n_viviendas_atricion = len(para_atricion)
+    n_sin_par_atricion = int((para_atricion["estado_vinculacion"] == "vivienda_sin_par").sum())
+    pct_crudo = 100 * n_sin_par_atricion / n_viviendas_atricion if n_viviendas_atricion else np.nan
+    pct_neto = pct_crudo - pct_rotacion_teorica if pd.notna(pct_crudo) else np.nan
+
+    hogares = hogar_t[["CODUSU", "NRO_HOGAR"]].drop_duplicates()
+    hogares = hogares.merge(clasificacion[["CODUSU", "estado_vinculacion"]], on="CODUSU", how="left")
+    matcheados = pares_hogar[["CODUSU", "NRO_HOGAR_t"]].drop_duplicates().rename(columns={"NRO_HOGAR_t": "NRO_HOGAR"})
+    hogares = hogares.merge(matcheados.assign(_matcheado=True), on=["CODUSU", "NRO_HOGAR"], how="left")
+    hogares["_matcheado"] = hogares["_matcheado"].fillna(False).astype(bool)
+
+    # Nivel hogar: todo hogar de t cae en exactamente una de estas 4
+    # categorías (ver assert abajo); n_sin_match_multihogar es una vivienda
+    # vinculada donde este hogar puntual no es el que matcheó.
+    n_hogares_en_t = len(hogares)
+    n_hogares_matcheados = int(hogares["_matcheado"].sum())
+    n_hogares_sin_par = int((hogares["estado_vinculacion"] == "vivienda_sin_par").sum())
+    n_hogares_reemplazada = int((hogares["estado_vinculacion"] == "hogar_reemplazado").sum())
+    n_sin_match_multihogar = int(
+        ((hogares["estado_vinculacion"] == "vinculada").to_numpy() & ~hogares["_matcheado"].to_numpy()).sum())
+    assert n_hogares_sin_par + n_hogares_reemplazada + n_sin_match_multihogar + n_hogares_matcheados == n_hogares_en_t
+
+    return {
+        "n_viviendas_t": n_viviendas_t, "n_vinculada": n_vinculada,
+        "n_hogar_reemplazado": n_hogar_reemplazado, "n_vivienda_sin_par": n_vivienda_sin_par,
+        "pct_vivienda_sin_par_crudo": pct_crudo, "pct_atricion_neta_rotacion": pct_neto,
+        "n_hogares_en_vivienda_sin_par": n_hogares_sin_par,
+        "n_hogares_en_vivienda_reemplazada": n_hogares_reemplazada,
+        "n_hogares_sin_match_multihogar": n_sin_match_multihogar,
+        "n_hogares_matcheados": n_hogares_matcheados,
+    }
 
 
 def validar_jefe(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
@@ -398,3 +470,25 @@ def hash_esquema_panel() -> str:
     # `corridas.csv` con qué versión de estos umbrales se corrió el panel.
     contenido = repr((TOLERANCIA_EDAD_POR_HORIZONTE, MANDATO_PRESIDENCIAL))
     return hashlib.sha256(contenido.encode("utf-8")).hexdigest()[:12]
+
+
+def particion_train_holdout(pares: pd.DataFrame, holdout_desde: tuple[int, int] = (2023, 1)) -> pd.Series:
+    """`"train"`/`"embargo"`/`"holdout"` por par: holdout si el origen `t`
+    es posterior o igual a `holdout_desde`, train si el destino `t+h` es
+    anterior al trimestre previo a `holdout_desde`, embargo en el medio."""
+    # Promovido desde `06b_diagnosticos_trayectoria.ipynb` (mismo criterio,
+    # D24/D32) para reusarlo también con la medición B -- no se modifica el
+    # original de la notebook, que sigue funcionando igual.
+    limite_train_th = sumar_trimestres(*holdout_desde, -1)
+    anio_t = pares["ANO4_t"].astype(int)
+    trimestre_t = pares["TRIMESTRE_t"].astype(int)
+    anio_th = pares["ANO4_th"].astype(int)
+    trimestre_th = pares["TRIMESTRE_th"].astype(int)
+
+    es_holdout = anio_t.gt(holdout_desde[0]) | (anio_t.eq(holdout_desde[0]) & trimestre_t.ge(holdout_desde[1]))
+    es_train = anio_th.lt(limite_train_th[0]) | (anio_th.eq(limite_train_th[0]) & trimestre_th.le(limite_train_th[1]))
+
+    particion = pd.Series("embargo", index=pares.index, dtype="object")
+    particion[es_train] = "train"
+    particion[es_holdout] = "holdout"
+    return particion

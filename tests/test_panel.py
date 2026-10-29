@@ -5,6 +5,7 @@ import pytest
 
 from panel import (
     clasificar_viviendas_no_vinculadas,
+    clasificar_vinculacion_trimestre,
     construir_pares,
     contar_altas_bajas,
     contar_nacimientos,
@@ -12,10 +13,12 @@ from panel import (
     hash_esquema_panel,
     identidad_nucleo,
     mandato_presidencial,
+    particion_train_holdout,
     regimen_ingreso_par,
     sumar_trimestres,
     tasa_coincidencia_componente,
     tasa_vinculacion_viviendas,
+    tiene_destino_valido,
     validar_jefe,
     vincular_hogares,
 )
@@ -366,3 +369,83 @@ class TestConstruirPares:
 
 def test_hash_esquema_panel_es_estable():
     assert hash_esquema_panel() == hash_esquema_panel()
+
+
+class TestParticionTrainHoldout:
+    def test_clasifica_train_embargo_holdout(self):
+        pares = pd.DataFrame({
+            "ANO4_t": [2022, 2022, 2023], "TRIMESTRE_t": [3, 4, 1],
+            "ANO4_th": [2022, 2023, 2023], "TRIMESTRE_th": [4, 1, 2],
+        })
+        r = particion_train_holdout(pares, holdout_desde=(2023, 1))
+        assert list(r) == ["train", "embargo", "holdout"]
+
+
+class TestTieneDestinoValido:
+    def test_hueco_de_publicacion(self):
+        assert tiene_destino_valido(2015, 2, 1) is False  # destino 2015T3, en el hueco
+
+    def test_borde_final_de_la_serie(self):
+        assert tiene_destino_valido(2025, 4, 1) is False  # destino 2026T1, no publicado
+
+    def test_cruza_el_corte_de_codusu_d7(self):
+        assert tiene_destino_valido(2015, 2, 4) is False  # destino 2016T2, cruza histórico/regular
+
+    def test_origen_normal(self):
+        assert tiene_destino_valido(2018, 2, 1) is True
+
+
+class TestClasificarVinculacionTrimestre:
+    def test_atricion_neta_resta_la_rotacion_teorica(self):
+        hogar_t = pd.DataFrame({"CODUSU": ["V1", "V2", "V3", "V4"], "NRO_HOGAR": [1, 1, 1, 1],
+                                 "AGLOMERADO": [1, 1, 1, 1]})
+        hogar_th = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR": [1]})
+        pares = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR_t": [1], "NRO_HOGAR_th": [1]})
+        r = clasificar_vinculacion_trimestre(hogar_t, hogar_th, pares, pct_rotacion_teorica=50.0)
+        assert r["n_viviendas_t"] == 4
+        assert r["n_vinculada"] == 1
+        assert r["n_vivienda_sin_par"] == 3
+        assert r["pct_vivienda_sin_par_crudo"] == pytest.approx(75.0)
+        assert r["pct_atricion_neta_rotacion"] == pytest.approx(25.0)
+
+    def test_desglose_a_nivel_hogar_con_vivienda_multihogar(self):
+        # V1 tiene 2 hogares en t (multi-hogar, D9): solo el hogar 1 matchea en th,
+        # el hogar 2 queda "sin_match_multihogar" aunque su vivienda esté vinculada.
+        # V2 (1 hogar) matchea. V3 no está más en th (vivienda_sin_par). V4 sigue en
+        # th pero con otro NRO_HOGAR (hogar_reemplazado). 4 viviendas, 5 hogares.
+        hogar_t = pd.DataFrame({
+            "CODUSU": ["V1", "V1", "V2", "V3", "V4"], "NRO_HOGAR": [1, 2, 1, 1, 1],
+            "AGLOMERADO": [1, 1, 1, 1, 1],
+        })
+        hogar_th = pd.DataFrame({"CODUSU": ["V1", "V2", "V4"], "NRO_HOGAR": [1, 1, 2]})
+        pares = pd.DataFrame({"CODUSU": ["V1", "V2"], "NRO_HOGAR_t": [1, 1], "NRO_HOGAR_th": [1, 1]})
+
+        r = clasificar_vinculacion_trimestre(hogar_t, hogar_th, pares)
+        assert r["n_viviendas_t"] == 4
+        assert r["n_vinculada"] == 2  # V1, V2
+        assert r["n_hogar_reemplazado"] == 1  # V4
+        assert r["n_vivienda_sin_par"] == 1  # V3
+
+        assert r["n_hogares_matcheados"] == 2  # (V1,1) y (V2,1)
+        assert r["n_hogares_sin_match_multihogar"] == 1  # (V1,2)
+        assert r["n_hogares_en_vivienda_reemplazada"] == 1  # (V4,1)
+        assert r["n_hogares_en_vivienda_sin_par"] == 1  # (V3,1)
+        n_hogares_en_t = len(hogar_t[["CODUSU", "NRO_HOGAR"]].drop_duplicates())
+        assert n_hogares_en_t == 5
+        assert (r["n_hogares_matcheados"] + r["n_hogares_sin_match_multihogar"]
+                + r["n_hogares_en_vivienda_reemplazada"] + r["n_hogares_en_vivienda_sin_par"]) == n_hogares_en_t
+
+    def test_excluye_aglomerados_dados_del_pct_pero_no_del_conteo_crudo(self):
+        hogar_t = pd.DataFrame({"CODUSU": ["V1", "V2", "V3"], "NRO_HOGAR": [1, 1, 1],
+                                 "AGLOMERADO": [1, 8, 8]})
+        hogar_th = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR": [1]})
+        pares = pd.DataFrame({"CODUSU": ["V1"], "NRO_HOGAR_t": [1], "NRO_HOGAR_th": [1]})
+
+        sin_excluir = clasificar_vinculacion_trimestre(hogar_t, hogar_th, pares)
+        assert sin_excluir["n_vivienda_sin_par"] == 2  # V2, V3 -- conteo crudo intacto
+        assert sin_excluir["pct_vivienda_sin_par_crudo"] == pytest.approx(100 * 2 / 3)
+
+        con_exclusion = clasificar_vinculacion_trimestre(
+            hogar_t, hogar_th, pares, aglomerados_excluidos_atricion=frozenset({8}))
+        assert con_exclusion["n_vivienda_sin_par"] == 2  # el conteo crudo no cambia
+        assert con_exclusion["pct_vivienda_sin_par_crudo"] == pytest.approx(0.0)  # V1 (aglomerado 1) está vinculada

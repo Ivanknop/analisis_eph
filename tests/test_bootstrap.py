@@ -41,7 +41,6 @@ class TestDiferenciaDosGruposBootstrapCluster:
         se_analitico = np.sqrt(p_a * (1 - p_a) / n_a + p_b * (1 - p_b) / n_b)
         ancho_analitico_pp = 2 * 1.96 * se_analitico * 100
         assert 0.3 * ancho_analitico_pp < ancho < 3 * ancho_analitico_pp
-        # El IC debe cubrir la diferencia observada (-20.0), con margen.
         assert resultado["diferencia_ic95_low"] < -20.0 < resultado["diferencia_ic95_high"]
 
     def test_reproducible_con_misma_seed(self):
@@ -51,7 +50,7 @@ class TestDiferenciaDosGruposBootstrapCluster:
         assert r1 == r2
 
     def test_grupo_b_ausente_da_nan(self):
-        tabla = _tabla_dos_grupos(50, 0.5, 0, 0.0)  # sin filas de "B"
+        tabla = _tabla_dos_grupos(50, 0.5, 0, 0.0)
         resultado = diferencia_dos_grupos_bootstrap_cluster(tabla, "cluster_id", "evento", "grupo", "A", "B")
         assert resultado["n_b"] == 0
         assert np.isnan(resultado["tasa_b"])
@@ -68,9 +67,9 @@ class TestDiferenciaDosGruposBootstrapCluster:
         `df[[True, False]]` dispara la detección de máscara de pandas."""
         filas = []
         for i in range(300):
-            filas.append({"cluster_id": f"c{i}", "con_deficit": True, "evento": i < 90})  # 30%
+            filas.append({"cluster_id": f"c{i}", "con_deficit": True, "evento": i < 90})
         for i in range(300):
-            filas.append({"cluster_id": f"s{i}", "con_deficit": False, "evento": i < 150})  # 50%
+            filas.append({"cluster_id": f"s{i}", "con_deficit": False, "evento": i < 150})
         tabla = pd.DataFrame(filas)
         resultado = diferencia_dos_grupos_bootstrap_cluster(
             tabla, "cluster_id", "evento", "con_deficit", True, False, n_boot=100, seed=1)

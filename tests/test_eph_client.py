@@ -33,6 +33,5 @@ class TestNombreArchivoHistorico:
         assert _nombre_archivo_historico(2015, 1) == "t115_dbf.rar"
 
     def test_2014_t2_es_la_excepcion_confirmada_en_zip(self):
-        # único trimestre de 2014-2015 que no sigue la regla general
         assert _nombre_archivo_historico(2014, 2) == "t214_dbf.zip"
 
