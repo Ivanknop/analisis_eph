@@ -1,6 +1,6 @@
 """Ponderador de hogar para la era histórica de la EPH (sin `PONDIH`),
-reusado por la Medición B (`src/posicion_relativa.py`) y por la capa de
-distancia histórica (`data/02b_distancia_lp/hogar/`, era retropolada).
+usado por la capa de distancia histórica (`data/02b_distancia_lp/hogar/`,
+era retropolada).
 """
 from __future__ import annotations
 

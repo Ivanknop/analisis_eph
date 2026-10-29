@@ -1,10 +1,10 @@
-"""Tests de `src/lineas_pobreza.py` -- fixtures sintéticas chicas con la
+"""Tests de `src/canasta_retropolada.py` -- fixtures sintéticas chicas con la
 forma real de los insumos ya verificados (`dic_2006_gba_metodologia22.csv`,
 canastas regionales oficiales). Nada de red."""
 import pandas as pd
 import pytest
 
-from lineas_pobreza import (
+from canasta_retropolada import (
     ANCLA_ABR_2016,
     ANCLA_DIC_2006,
     REGION_GBA,

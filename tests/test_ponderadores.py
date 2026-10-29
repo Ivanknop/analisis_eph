@@ -1,9 +1,9 @@
-"""Tests de `src/retropolacion_pobreza.py`. Fixtures sintéticas chicas -- mismo
+"""Tests de `src/ponderadores.py`. Fixtures sintéticas chicas -- mismo
 criterio que `tests/test_canasta_regional.py`."""
 import pandas as pd
 import pytest
 
-from retropolacion_pobreza import peso_hogar_historico
+from ponderadores import peso_hogar_historico
 
 
 class TestPesoHogarHistorico:

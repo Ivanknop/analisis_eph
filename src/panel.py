@@ -476,9 +476,8 @@ def particion_train_holdout(pares: pd.DataFrame, holdout_desde: tuple[int, int] 
     """`"train"`/`"embargo"`/`"holdout"` por par: holdout si el origen `t`
     es posterior o igual a `holdout_desde`, train si el destino `t+h` es
     anterior al trimestre previo a `holdout_desde`, embargo en el medio."""
-    # Promovido desde `06b_diagnosticos_trayectoria.ipynb` (mismo criterio,
-    # D24/D32) para reusarlo también con la medición B -- no se modifica el
-    # original de la notebook, que sigue funcionando igual.
+    # Promovido desde `06b_diagnosticos_trayectoria.ipynb` (mismo criterio)
+    # -- no se modifica el original de la notebook, que sigue funcionando igual.
     limite_train_th = sumar_trimestres(*holdout_desde, -1)
     anio_t = pares["ANO4_t"].astype(int)
     trimestre_t = pares["TRIMESTRE_t"].astype(int)

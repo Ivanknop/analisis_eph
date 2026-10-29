@@ -1,6 +1,6 @@
-"""Eventos de composición que distorsionan la intensificación (D19/D20):
-menores que entran a trabajar, jubilaciones en hogares mixtos, tipología
-de perceptores."""
+"""Eventos de composición que distorsionan la medición de cambios en la
+situación laboral del hogar: menores que entran a trabajar, jubilaciones
+en hogares mixtos, tipología de perceptores."""
 from __future__ import annotations
 
 import numpy as np
@@ -12,7 +12,7 @@ from perfil_hogar import clasificar_precariedad_persona, clasificar_situacion_es
 # `CAT_INAC`/`CH10` se traen de `01_armonizado` ad hoc (fuera de
 # `ESQUEMA_NUCLEO`), como `NIVEL_ED` en `pipeline_meta`.
 
-# PENDIENTE de confirmación de Iván (D19).
+# A revisar.
 EDAD_CORTE_MENOR = 18
 
 
@@ -105,7 +105,8 @@ def emparejar_activos(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
 def calcular_se_jubila(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                         pares_hogar: pd.DataFrame, h: int) -> pd.DataFrame:
     """Por hogar-par: cantidad de activos de `t` para los que existe en
-    `t+h` alguien del mismo hogar/sexo recién jubilado, edad en D6 (D19)."""
+    `t+h` alguien del mismo hogar/sexo recién jubilado, edad dentro de la
+    ventana de tolerancia por horizonte."""
     minimo, maximo = TOLERANCIA_EDAD_POR_HORIZONTE[h]
     claves = pares_hogar[["CODUSU", "NRO_HOGAR_t", "NRO_HOGAR_th"]].drop_duplicates()
 

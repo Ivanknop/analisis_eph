@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 import canasta_regional
-import linea_pobreza
+import distancia_lp
 
 REPO = Path(__file__).resolve().parents[1]
 NUCLEO = REPO / "data" / "02_nucleo"
@@ -43,7 +43,7 @@ def _cargar_trimestre(anio: int, trimestre: int, canasta_trimestral: pd.DataFram
                                   columns=COLUMNAS_INDIVIDUAL)
     canasta_t = canasta_trimestral[(canasta_trimestral["ANO4"] == anio)
                                     & (canasta_trimestral["TRIMESTRE"] == trimestre)]
-    distancia = linea_pobreza.calcular_distancia_lp(hogar, individual, canasta_t[["REGION", "cba_ae", "cbt_ae"]])
+    distancia = distancia_lp.calcular_distancia_lp(hogar, individual, canasta_t[["REGION", "cba_ae", "cbt_ae"]])
     n_miembros = individual.groupby(["CODUSU", "NRO_HOGAR"]).size().rename("n_miembros")
     distancia = distancia.merge(hogar[["CODUSU", "NRO_HOGAR", "PONDIH"]], on=["CODUSU", "NRO_HOGAR"], how="left")
     distancia = distancia.merge(n_miembros, on=["CODUSU", "NRO_HOGAR"], how="left")

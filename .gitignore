@@ -12,10 +12,9 @@ data/meta/*.csv
 !data/meta/formato_decimal_monetario.csv
 !data/meta/p21_series_trimestral.csv
 !data/meta/linea_pobreza_trimestral.csv
-data/indice-FACPCE.csv
-data/indice-FACPCE.xlsx
+!data/meta/canasta_retropolada_comparacion_cedlas.csv
+!data/meta/frontera_2015_2016_vs_cedlas.csv
 data/EPH_tot_urbano_estructura_bases_2025.pdf
-docs/decisiones_metodologicas.md
 data/canastas_indec/tabla_adulto_equivalente.csv
 data/canastas_indec/retropolacion/cedlas/tornarolli_2018_documento_trabajo_226.pdf
 data/canastas_indec/retropolacion/indec_metodologia_anterior/pob_tot_2sem12.pdf

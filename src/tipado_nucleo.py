@@ -15,17 +15,6 @@ _PATRON_PUNTO_DECIMAL = re.compile(r"\d\.\d+$")
 
 CODEBOOK = "data/EPH_tot_urbano_estructura_bases_2025.pdf"
 
-# Códigos especiales generales (codebook, "Comentarios generales", pág. 31):
-# 9/99/999/9999 = Ns/Nr salvo indicación contraria; montos de ingreso -9 = no
-# respuesta; PP06C/PP06D además -7/-8; 0 = "no corresponde a la secuencia".
-CODIGOS_ESPECIALES_GENERALES = {
-    "no_sabe_no_responde": "9, 99, 999, 9999 según longitud del campo",
-    "no_respuesta_monto_ingreso": -9,
-    "no_correspondia_ocupacion_pp06c_pp06d": -7,
-    "no_tuvo_ingresos_pp06c_pp06d": -8,
-    "no_corresponde_secuencia": 0,
-}
-
 _VIVIENDA_CODIGOS_ESPECIALES = {"no_corresponde": 0}
 
 ESQUEMA_NUCLEO: dict[str, dict] = {

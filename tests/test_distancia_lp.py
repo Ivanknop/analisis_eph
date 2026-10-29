@@ -1,10 +1,10 @@
-"""Tests de `src/linea_pobreza.py`. Todo con DataFrames sintéticos chicos armados
+"""Tests de `src/distancia_lp.py`. Todo con DataFrames sintéticos chicos armados
 a mano -- mismo criterio que tests/test_panel.py."""
 import numpy as np
 import pandas as pd
 import pytest
 
-from linea_pobreza import calcular_distancia_lp
+from distancia_lp import calcular_distancia_lp
 
 
 def _hogar(filas):

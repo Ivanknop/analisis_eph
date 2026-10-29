@@ -14,10 +14,10 @@ import requests
 from manifiesto_insumos import calcular_sha256
 
 # No calcula ninguna línea, backcast ni distancia -- eso vive en
-# `lineas_pobreza.py`. Los insumos de la canasta oficial (canastas regionales,
+# `canasta_retropolada.py`. Los insumos de la canasta oficial (canastas regionales,
 # tabla de adulto equivalente, fuentes de contraste CEDLAS/UCA/INDEC
 # histórico) siguen en `data/canastas_indec/` (`canasta_regional.py`,
-# `adulto_equivalente.py`, `retropolacion_pobreza.py`) -- no se tocan ni se
+# `adulto_equivalente.py`, `ponderadores.py`) -- no se tocan ni se
 # redescargan acá.
 
 _HEADERS = {"User-Agent": "Mozilla/5.0"}

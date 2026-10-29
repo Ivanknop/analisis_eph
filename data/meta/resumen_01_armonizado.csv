@@ -81,18 +81,18 @@ anio,trimestre,tipo,filas_escritas,saltado,motivo_saltado
 2013,3,individual,55876,True,ya existía
 2013,4,hogar,17486,True,ya existía
 2013,4,individual,56198,True,ya existía
-2014,1,hogar,17797,False,
-2014,1,individual,57592,False,
+2014,1,hogar,17797,True,ya existía
+2014,1,individual,57592,True,ya existía
 2014,2,hogar,18780,True,ya existía
 2014,2,individual,61112,True,ya existía
-2014,3,hogar,19041,False,
-2014,3,individual,61518,False,
-2014,4,hogar,18909,False,
-2014,4,individual,60959,False,
-2015,1,hogar,18743,False,
-2015,1,individual,60145,False,
-2015,2,hogar,18875,False,
-2015,2,individual,60028,False,
+2014,3,hogar,19041,True,ya existía
+2014,3,individual,61518,True,ya existía
+2014,4,hogar,18909,True,ya existía
+2014,4,individual,60959,True,ya existía
+2015,1,hogar,18743,True,ya existía
+2015,1,individual,60145,True,ya existía
+2015,2,hogar,18875,True,ya existía
+2015,2,individual,60028,True,ya existía
 2016,2,hogar,18796,True,ya existía
 2016,2,individual,59811,True,ya existía
 2016,3,hogar,18800,True,ya existía

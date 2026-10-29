@@ -1,5 +1,5 @@
 """Trayectorias de distancia a la línea de pobreza (D33-D34): variación
-entre `t` y `t+h` de `linea_pobreza.calcular_distancia_lp`, sobre los pares
+entre `t` y `t+h` de `distancia_lp.calcular_distancia_lp`, sobre los pares
 del panel ya vinculados (D9).
 """
 from __future__ import annotations

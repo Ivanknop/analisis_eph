@@ -80,14 +80,6 @@ def clasificar_precariedad_persona(individual: pd.DataFrame) -> pd.Series:
     return categoria
 
 
-def calcular_decil(hogar: pd.DataFrame) -> pd.Series:
-    '''Entero 1-10 desde DECCFR -- NA si no es un decil válido (decil_0/12/no parseable).'''
-    deccfr = pd.to_numeric(hogar["DECCFR"], errors="coerce")
-    decil = pd.Series(pd.array([pd.NA] * len(hogar), dtype="Int8"), index=hogar.index)
-    valido = deccfr.between(1, 10)
-    decil[valido] = deccfr[valido].astype("Int8")
-    return decil
-
 def bucket_nivel_ed(nivel_ed: pd.Series) -> pd.Series:
     """2 buckets: 1-3-7 (sin instrucción incluido) = "secundario incompleto
     o menos", 4-6 = "secundario completo o más". `NA` en 9 (Ns/Nr) y nulos."""
