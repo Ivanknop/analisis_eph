@@ -123,7 +123,8 @@ class TestClasificarPatronApariciones:
     def test_nro_hogar_distinto_no_matchea_como_el_mismo_hogar(self):
         t1 = pd.DataFrame({"CODUSU": ["A"], "NRO_HOGAR": [1], "AGLOMERADO": [10]})
         # En t0+4 la vivienda sigue pero con otro NRO_HOGAR -- no es la misma
-        # clave exacta, cuenta como ausente ahí (mismo criterio que D9).
+        # clave exacta, cuenta como ausente ahí (mismo criterio de identidad
+        # exacta de hogar que usa el resto del panel).
         t4 = pd.DataFrame({"CODUSU": ["A"], "NRO_HOGAR": [2], "AGLOMERADO": [10]})
         t5 = pd.DataFrame({"CODUSU": ["A"], "NRO_HOGAR": [1], "AGLOMERADO": [10]})
         resultado = clasificar_patron_apariciones(self._cohorte(), t1, t4, t5)
@@ -171,7 +172,7 @@ class TestEncadenarTrayectoria:
 
     def test_quiebre_de_era_no_matchea_y_no_rompe(self):
         # CODUSU histórico (6 dígitos) de un lado, regular (29 caracteres) del
-        # otro -- 0% de overlap por formato incompatible (D7), no por error.
+        # otro -- 0% de overlap por formato incompatible, no por error.
         pares_h1_t = _pares(["393389"], [1], [10], [True])
         pares_h4_t = _pares(["TQXXXXXXXXXXXXXXXXXXX00000000"], [1], [10], [True])
         pares_h1_t4 = _pares(["TQXXXXXXXXXXXXXXXXXXX00000000"], [1], [10], [True])
@@ -213,7 +214,7 @@ class TestCohorteCompletable:
 
     def test_cruce_de_era_en_eslabon_h4(self):
         # t0=2015T2 (histórico), t0+4=2016T2 (regular) -- ambos publicados,
-        # pero el eslabón h=4 cruza la frontera de CODUSU (D7).
+        # pero el eslabón h=4 cruza la frontera de CODUSU.
         publicados = self.PUBLICADOS | {(2015, 3)}
         resultado = cohorte_completable(2015, 2, publicados, self._historico)
         assert not resultado["completable"]

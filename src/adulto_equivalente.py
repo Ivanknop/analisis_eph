@@ -1,4 +1,4 @@
-"""Unidades de adulto equivalente por sexo y edad (D25), tabla INDEC citada
+"""Unidades de adulto equivalente por sexo y edad, tabla INDEC citada
 junto a `TABLA_ADULTO_EQUIVALENTE`.
 """
 from __future__ import annotations
@@ -9,7 +9,7 @@ import pandas as pd
 # frecuentes* (Notas al pie N°3, junio de 2020, ISSN 2618-2319,
 # ISBN 978-950-896-584-4), Tabla 1, p.6.
 # (edad_min, edad_max) inclusive -> (unidades mujer, unidades varón). `-1` es la
-# edad real de "menor de 1 año" en CH06 (D19: nunca vale 0), no un dato faltante.
+# edad real de "menor de 1 año" en CH06 (nunca vale 0), no un dato faltante.
 # El último tramo (76+) no tiene techo -- CH06 llega hasta 110 en los datos reales.
 TABLA_ADULTO_EQUIVALENTE = (
     ((-1, -1), (0.35, 0.35)),   # menor de 1 año
@@ -51,7 +51,7 @@ def calcular_unidades_equivalentes(ch04: pd.Series, ch06: pd.Series) -> pd.Serie
     return resultado
 
 
-def calcular_unidades_ae_hogar(individual: pd.DataFrame) -> pd.Series:
+def calcular_unidades_adulto_equivalente_hogar(individual: pd.DataFrame) -> pd.Series:
     """Suma de `calcular_unidades_equivalentes` por hogar (`CODUSU, NRO_HOGAR`).
     `NA` si algún integrante del hogar no tiene unidades determinables -- no se
     trata a esa persona como `0` en silencio."""

@@ -1,4 +1,4 @@
-"""Test de regresión (D33): `calcular_distancia_lp` + `canasta_regional`
+"""Test de regresión: `calcular_distancia_linea_pobreza` + `canasta_regional`
 deben seguir reproduciendo la tasa oficial de INDEC. Requiere datos reales
 no versionados -- se salta si no están."""
 from pathlib import Path
@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 import canasta_regional
-import distancia_lp
+import distancia_linea_pobreza
 
 REPO = Path(__file__).resolve().parents[1]
 NUCLEO = REPO / "data" / "02_nucleo"
@@ -43,7 +43,7 @@ def _cargar_trimestre(anio: int, trimestre: int, canasta_trimestral: pd.DataFram
                                   columns=COLUMNAS_INDIVIDUAL)
     canasta_t = canasta_trimestral[(canasta_trimestral["ANO4"] == anio)
                                     & (canasta_trimestral["TRIMESTRE"] == trimestre)]
-    distancia = distancia_lp.calcular_distancia_lp(hogar, individual, canasta_t[["REGION", "cba_ae", "cbt_ae"]])
+    distancia = distancia_linea_pobreza.calcular_distancia_linea_pobreza(hogar, individual, canasta_t[["REGION", "cba_adulto_equivalente", "cbt_adulto_equivalente"]])
     n_miembros = individual.groupby(["CODUSU", "NRO_HOGAR"]).size().rename("n_miembros")
     distancia = distancia.merge(hogar[["CODUSU", "NRO_HOGAR", "PONDIH"]], on=["CODUSU", "NRO_HOGAR"], how="left")
     distancia = distancia.merge(n_miembros, on=["CODUSU", "NRO_HOGAR"], how="left")
@@ -68,7 +68,7 @@ def _clasificar(desvio: float) -> str:
 @REQUIERE_DATOS_REALES
 def test_reproduce_la_distribucion_de_desvios_ya_validada():
     # Igual que la sección 4 del notebook 05: las dos ventanas aportan a la
-    # distribución 19/4/1 (D25/D26) -- (a) sola da 12/12 aceptable, el
+    # distribución 19/4/1 -- (a) sola da 12/12 aceptable, el
     # desvío viene todo de (b).
     canasta_por_metodo = {
         metodo: canasta_regional.construir_canasta_trimestral(CANASTAS, metodo)

@@ -191,7 +191,7 @@ def reporte_no_parseables(serie_original: pd.Series, serie_tipada: pd.Series,
 
 
 def ingreso_no_declarado(hogar_df: pd.DataFrame, es_historico: bool) -> pd.Series:
-    """`PONDIH == 0` en era regular (D3). `NA` en toda la era histórica --
+    """`PONDIH == 0` en era regular. `NA` en toda la era histórica --
     no hay `PONDIH` de hogar antes de 2016."""
     if es_historico or "PONDIH" not in hogar_df.columns:
         return pd.Series(pd.NA, index=hogar_df.index, dtype="boolean")

@@ -29,14 +29,14 @@ class TestCargarAnclaDic2006:
         csv = tmp_path / "dic_2006.csv"
         csv.write_text(
             "concepto,valor,unidad,region,periodo,pagina,cuadro,fuente\n"
-            "cba_ae_metodologia_nueva,149.13,x,GBA,2006-12,15,Cuadro 5,f\n"
-            "cbt_ae_metodologia_nueva,389.28,x,GBA,2006-12,15,Cuadro 5,f\n"
+            "cba_adulto_equivalente_metodologia_nueva,149.13,x,GBA,2006-12,15,Cuadro 5,f\n"
+            "cbt_adulto_equivalente_metodologia_nueva,389.28,x,GBA,2006-12,15,Cuadro 5,f\n"
             "ice_metodologia_nueva,2.61,x,GBA,2006-12,15,Cuadro 5,f\n"
-            "cba_ae_metodologia_anterior,134.14,x,GBA,2006-12,15,Cuadro 5,f\n"
-            "cbt_ae_metodologia_anterior,291.08,x,GBA,2006-12,15,Cuadro 5,f\n"
+            "cba_adulto_equivalente_metodologia_anterior,134.14,x,GBA,2006-12,15,Cuadro 5,f\n"
+            "cbt_adulto_equivalente_metodologia_anterior,291.08,x,GBA,2006-12,15,Cuadro 5,f\n"
         )
         ancla = cargar_ancla_dic_2006(csv)
-        assert ancla == {"cba_ae": pytest.approx(149.13), "cbt_ae": pytest.approx(389.28)}
+        assert ancla == {"cba_adulto_equivalente": pytest.approx(149.13), "cbt_adulto_equivalente": pytest.approx(389.28)}
 
 
 class TestCargarAnclaAbr2016:
@@ -48,8 +48,8 @@ class TestCargarAnclaAbr2016:
         ancla = cargar_ancla_abr_2016(tmp_path)
         assert set(ancla["REGION"]) == {1, 42}
         fila_gba = ancla[ancla["REGION"] == REGION_GBA].iloc[0]
-        assert fila_gba["cba_ae"] == pytest.approx(1514.53)
-        assert fila_gba["cbt_ae"] == pytest.approx(3665.17)
+        assert fila_gba["cba_adulto_equivalente"] == pytest.approx(1514.53)
+        assert fila_gba["cbt_adulto_equivalente"] == pytest.approx(3665.17)
 
 
 class TestEncadenarIndice:
@@ -122,27 +122,27 @@ class TestConstruirCanastaGbaMensual:
 
     def test_continuidad_en_ambos_extremos(self):
         indice = self._indice_sintetico()
-        r = construir_canasta_gba_mensual(149.13, 1514.53, indice, "cba_ae")
+        r = construir_canasta_gba_mensual(149.13, 1514.53, indice, "cba_adulto_equivalente")
         fila_dic2006 = r[(r["ANO4"] == 2006) & (r["MES"] == 12)].iloc[0]
-        assert fila_dic2006["cba_ae"] == pytest.approx(149.13)
+        assert fila_dic2006["cba_adulto_equivalente"] == pytest.approx(149.13)
         fila_mar2016 = r[(r["ANO4"] == 2016) & (r["MES"] == 3) & (r["origen"] == "retropolada_2_anclas")].iloc[0]
         # w(marzo-2016)=1/112, casi todo peso en el ancla de abril-2016 -- con
         # índice constante, backcast_simple devuelve el ancla sin importar el mes.
-        assert fila_mar2016["cba_ae"] == pytest.approx(1 / 112 * 149.13 + 111 / 112 * 1514.53)
+        assert fila_mar2016["cba_adulto_equivalente"] == pytest.approx(1 / 112 * 149.13 + 111 / 112 * 1514.53)
 
     def test_incluye_la_version_de_un_solo_ancla_para_sensibilidad(self):
         indice = self._indice_sintetico()
-        r = construir_canasta_gba_mensual(149.13, 1514.53, indice, "cba_ae")
+        r = construir_canasta_gba_mensual(149.13, 1514.53, indice, "cba_adulto_equivalente")
         una_ancla = r[r["origen"] == "retropolada_1_ancla"]
         assert set(zip(una_ancla["ANO4"], una_ancla["MES"])) == {
             (a, m) for a in range(2007, 2017) for m in range(1, 13) if (a, m) <= (2016, 3)
         }
         # Con índice constante, la versión de un solo ancla es el ancla de abril-2016 en todo el tramo.
-        assert una_ancla["cba_ae"].to_numpy() == pytest.approx(1514.53)
+        assert una_ancla["cba_adulto_equivalente"].to_numpy() == pytest.approx(1514.53)
 
     def test_no_incluye_meses_fuera_de_2003_2016(self):
         indice = self._indice_sintetico()
-        r = construir_canasta_gba_mensual(149.13, 1514.53, indice, "cba_ae")
+        r = construir_canasta_gba_mensual(149.13, 1514.53, indice, "cba_adulto_equivalente")
         assert r["ANO4"].min() == 2003
         assert (r["ANO4"] < 2003).sum() == 0
 
@@ -151,22 +151,22 @@ class TestExtenderRegiones:
     def test_proporcion_regional_constante_en_todo_el_tramo(self):
         canasta_gba = pd.DataFrame({
             "REGION": [REGION_GBA, REGION_GBA], "ANO4": [2003, 2010], "MES": [1, 6],
-            "cba_ae": [100.0, 150.0], "origen": ["retropolada_2_anclas", "retropolada_2_anclas"],
+            "cba_adulto_equivalente": [100.0, 150.0], "origen": ["retropolada_2_anclas", "retropolada_2_anclas"],
         })
-        ancla_abr_2016 = pd.DataFrame({"REGION": [REGION_GBA, 42], "cba_ae": [1514.53, 1358.29]})
-        r = extender_regiones(canasta_gba, ancla_abr_2016, "cba_ae")
+        ancla_abr_2016 = pd.DataFrame({"REGION": [REGION_GBA, 42], "cba_adulto_equivalente": [1514.53, 1358.29]})
+        r = extender_regiones(canasta_gba, ancla_abr_2016, "cba_adulto_equivalente")
         ratio_oficial = 1358.29 / 1514.53
-        cuyo = r[r["REGION"] == 42].set_index("ANO4")["cba_ae"]
+        cuyo = r[r["REGION"] == 42].set_index("ANO4")["cba_adulto_equivalente"]
         assert cuyo.loc[2003] == pytest.approx(100.0 * ratio_oficial)
         assert cuyo.loc[2010] == pytest.approx(150.0 * ratio_oficial)
 
     def test_gba_queda_sin_cambios(self):
         canasta_gba = pd.DataFrame({
-            "REGION": [REGION_GBA], "ANO4": [2003], "MES": [1], "cba_ae": [100.0], "origen": ["retropolada_2_anclas"],
+            "REGION": [REGION_GBA], "ANO4": [2003], "MES": [1], "cba_adulto_equivalente": [100.0], "origen": ["retropolada_2_anclas"],
         })
-        ancla_abr_2016 = pd.DataFrame({"REGION": [REGION_GBA, 42], "cba_ae": [1514.53, 1358.29]})
-        r = extender_regiones(canasta_gba, ancla_abr_2016, "cba_ae")
-        assert r[r["REGION"] == REGION_GBA]["cba_ae"].iloc[0] == pytest.approx(100.0)
+        ancla_abr_2016 = pd.DataFrame({"REGION": [REGION_GBA, 42], "cba_adulto_equivalente": [1514.53, 1358.29]})
+        r = extender_regiones(canasta_gba, ancla_abr_2016, "cba_adulto_equivalente")
+        assert r[r["REGION"] == REGION_GBA]["cba_adulto_equivalente"].iloc[0] == pytest.approx(100.0)
 
 
 class TestAgregarTrimestralPorOrigen:
@@ -175,11 +175,11 @@ class TestAgregarTrimestralPorOrigen:
             "REGION": [1] * 6,
             "ANO4": [2010] * 6,
             "MES": [1, 2, 3, 1, 2, 3],
-            "cba_ae": [100.0, 110.0, 120.0, 200.0, 220.0, 240.0],
+            "cba_adulto_equivalente": [100.0, 110.0, 120.0, 200.0, 220.0, 240.0],
             "origen": ["retropolada_2_anclas"] * 3 + ["retropolada_1_ancla"] * 3,
         })
-        r = agregar_trimestral_por_origen(mensual, "cba_ae")
+        r = agregar_trimestral_por_origen(mensual, "cba_adulto_equivalente")
         dos_anclas = r[r["origen"] == "retropolada_2_anclas"].iloc[0]
         una_ancla = r[r["origen"] == "retropolada_1_ancla"].iloc[0]
-        assert dos_anclas["cba_ae"] == pytest.approx(110.0)
-        assert una_ancla["cba_ae"] == pytest.approx(220.0)
+        assert dos_anclas["cba_adulto_equivalente"] == pytest.approx(110.0)
+        assert una_ancla["cba_adulto_equivalente"] == pytest.approx(220.0)

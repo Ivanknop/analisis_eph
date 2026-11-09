@@ -14,7 +14,7 @@ partir del panel rotativo de la Encuesta Permanente de Hogares (EPH) continua.
 ### Eje del análisis
 
 - **Objeto central**: la distancia de cada hogar a la línea de pobreza/indigencia
-  (`ratio_lp`/`ratio_li`, CBA/CBT por adulto equivalente) y su variación entre `t` y `t+h`
+  (`ratio_linea_pobreza`/`ratio_linea_indigencia`, CBA/CBT por adulto equivalente) y su variación entre `t` y `t+h`
   (`h=1` y `h=4`, los horizontes que permite la rotación 2-2-2 del panel) — para **todos**
   los hogares, no solo los pobres. `pobre`/`indigente` (ratio < 1) son derivados, no el eje.
 - **Predictores candidatos**, no eje: composición del hogar, situación laboral de los
@@ -65,10 +65,10 @@ Las notebooks se corren en orden: cada una lee la capa que escribió la anterior
 | `02_panel_hogares` | `data/02_nucleo/` | `data/03_panel/pares_h1/`, `data/03_panel/pares_h4/`, `panel_resumen_pares.csv`, `panel_resumen_final.csv` |
 | `03_exploracion_descriptiva` | `data/02_nucleo/`, `data/03_panel/` | CSV descriptivos (quintiles, NBI) |
 | `04_trayectorias` | `data/03_panel/` | `data/04_trayectorias/`, `trayectorias_*.csv` — diagnóstico de factibilidad del panel dinámico |
-| `05_distancia_linea_pobreza` | `data/02_nucleo/`, `data/01_armonizado/` | `data/02b_distancia_lp/hogar/`  `data/canastas_indec/*_crudo.csv` |
+| `05_distancia_linea_pobreza` | `data/02_nucleo/`, `data/01_armonizado/` | `data/02b_distancia_linea_pobreza/hogar/`  `data/canastas_indec/*_crudo.csv` |
 | `05b_canastas_retropoladas` | `data/insumos_lineas/`, `data/canastas_indec/` | canasta histórica según Tornarolli, 2003T1–2016T1 |
-| `05c_distancia_historica` | `data/02_nucleo/`, `data/01_armonizado/` | `data/02b_distancia_lp/hogar/` (era `"historica"`, 2003T3–2015T2, mismas particiones que `05`), `linea_pobreza_trimestral.csv`, `frontera_2015_2016_vs_cedlas.csv` |
-| `06_trayectorias_distancia` | `data/02b_distancia_lp/hogar/`, `data/03_panel/` | `data/05_trayectoria_distancia/{pares_h1,pares_h4}/` (solo era `"regional_2016"`) |
+| `05c_distancia_historica` | `data/02_nucleo/`, `data/01_armonizado/` | `data/02b_distancia_linea_pobreza/hogar/` (era `"historica"`, 2003T3–2015T2, mismas particiones que `05`), `linea_pobreza_trimestral.csv`, `frontera_2015_2016_vs_cedlas.csv` |
+| `06_trayectorias_distancia` | `data/02b_distancia_linea_pobreza/hogar/`, `data/03_panel/` | `data/05_trayectoria_distancia/{pares_h1,pares_h4}/` (solo era `"regional_2016"`) |
 | `06b_diagnosticos_trayectoria` | `data/05_trayectoria_distancia/` | CSV descriptivos (tendencia, regresión a la media, conteos train/holdout) |
 
 `notebooks/00_explorar.ipynb` es de solo lectura: arma vistas DuckDB sobre las capas ya

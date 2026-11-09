@@ -3,10 +3,8 @@
 Ronda de **conseguir, verificar y registrar insumos**. No se calculó ninguna
 línea, backcast, distancia ni tasa. Fecha de esta ronda: 2026-10-19.
 
-Insumos 1, 6 y 7 ya estaban en el repo de una ronda anterior (que probó un
-método de cálculo distinto — backcast de un solo ancla con FACPCE —, descartado
-en `.claude/decisiones.md`; los insumos en sí siguen siendo válidos, no se
-redescargaron). Insumos 2, 3 y 4 son los nuevos de esta ronda, en
+Insumos 1, 6 y 7 ya estaban en el repo de una ronda anterior; siguen siendo
+válidos y no se redescargaron. Insumos 2, 3 y 4 son los nuevos de esta ronda, en
 `data/insumos_lineas/` (manifiesto con URL/fecha/SHA-256 en
 `data/insumos_lineas/manifest.json`).
 
@@ -22,7 +20,6 @@ redescargaron). Insumos 2, 3 y 4 son los nuevos de esta ronda, en
 | 6 | Tabla de adultos equivalentes (INDEC) | **sí** (ya en el repo, y verificado esta ronda contra la fuente primaria) | `src/adulto_equivalente.py` (`TABLA_ADULTO_EQUIVALENTE`, hardcodeada en el módulo) | todas las bandas de edad/sexo | ninguno | Comparé fila por fila contra la **Tabla de equivalencias oficial** (Metodología N°22, Anexo 7.1, p.21, ya cacheada en `metodologia_22_pobreza.pdf`) — coincide exactamente (ej. varón 30-45=1,00; mujer 61-75=0,67; "menor de 1 año"/0,35 ↔ banda 9-12 meses=0,35). No hacía falta volver a cargarla. |
 | 7a | Serie vieja CBA/CBT GBA, sep-2000/dic-2013 (`sh-cba2.xls`) | **sí** (ya en el repo) | `data/canastas_indec/retropolacion/indec_pre_intervencion/sh-cba2.xls` | sep-2000 a dic-2013 | — | Solo contraste (metodología anterior), nunca para calcular. |
 | 7b | Anexo B Tornarolli (tasas CEDLAS por semestre) | **sí** (ya en el repo) | `data/canastas_indec/retropolacion/cedlas/{tornarolli_2018_documento_trabajo_226.pdf, series_comparables_anexo_b.csv}` | 2003-II a 2017-I, semestral | — | Ya transcripto del PDF (p.26-27). |
-| 7c | Series UCA/EDSA 2004-2023 | **sí** (ya en el repo) | `data/canastas_indec/retropolacion/uca/edsa_pobreza_indigencia_anual.csv` | 2004-2023, anual | <2010 no es relevamiento propio (reconstrucción hacia atrás en base a EPH/INDEC, D25 5.a — ya documentado en el repo) | — |
 
 ## Comparación de candidatos para insumo 4 (índice alternativo 2007–abril 2016)
 

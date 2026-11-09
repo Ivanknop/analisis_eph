@@ -18,7 +18,7 @@ from armonizacion import es_historico, trimestres_publicados
 PCT_ROTACION_TEORICA = 50.0
 
 # Ventana de `diferencia_edad` aceptada como "misma persona" por horizonte --
-# PROVISORIA (D6). Centrada en el desplazamiento esperado, no en 0: en h=4
+# PROVISORIA. Centrada en el desplazamiento esperado, no en 0: en h=4
 # pasa un año (moda observada en +1, 83.5% de los componentes con mismo sexo),
 # no en 0 (6.3%) -- ver diagnóstico de la tarea. h=1 cubre 92.92% de los
 # componentes con mismo sexo; h=4 cubre 93.22%.
@@ -88,7 +88,7 @@ def tasa_vinculacion_viviendas(codusu_t: set[str], codusu_th: set[str]) -> dict:
 
 def vincular_hogares(hogar_t: pd.DataFrame, hogar_th: pd.DataFrame) -> pd.DataFrame:
     """Join exacto por `CODUSU+NRO_HOGAR+AGLOMERADO` entre hogares de `t` y
-    `t+h` -- identidad de hogar, no solo de vivienda (ver D9)."""
+    `t+h` -- identidad de hogar, no solo de vivienda."""
     # Match por CODUSU solo (versión anterior) arma producto cruzado cuando
     # una vivienda tiene más de un hogar en t o en t+h (confirmado: ~0.9% de
     # las combinaciones vivienda-trimestre en los datos reales). Requerir
@@ -243,7 +243,7 @@ def emparejar_componentes(individual_t: pd.DataFrame, individual_th: pd.DataFram
     # por número de COMPONENTE para identificar a la misma persona? La
     # identidad del panel (`identidad_nucleo`) y el conteo de altas/bajas
     # (`contar_altas_bajas`) NO usan esto -- matchean por sexo+edad, no por
-    # COMPONENTE (ver D10: la reasignación de COMPONENTE entre visitas solo
+    # COMPONENTE (la reasignación de COMPONENTE entre visitas solo
     # explica ~7% de los desajustes).
     columnas = ["CODUSU", "NRO_HOGAR", "COMPONENTE", "CH04", "CH06"]
     izq = pares_hogar.merge(
@@ -272,12 +272,12 @@ def tasa_coincidencia_componente(componentes_emparejados: pd.DataFrame) -> dict:
 
 def identidad_nucleo(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                       pares_hogar: pd.DataFrame, h: int) -> pd.DataFrame:
-    """Identidad del hogar-par por núcleo (D10): `True` si el/la jefe/a de
+    """Identidad del hogar-par por núcleo: `True` si el/la jefe/a de
     `t` aparece en el núcleo de `t+h` (`CH03` 1 o 2) dentro de la ventana
     de edad. `NA` si el/la jefe/a de `t` es ambiguo/a."""
-    # Reemplaza la clasificación por proporción de componentes (D9): esa regla
+    # Reemplaza la clasificación por proporción de componentes: esa regla
     # exigía que coincidiera casi TODO el hogar, lo que penalizaba
-    # mecánicamente a los hogares grandes (ver D10) sin relación con si el
+    # mecánicamente a los hogares grandes sin relación con si el
     # hogar es "el mismo". La composición completa queda aparte, como flag,
     # en `contar_altas_bajas` -- no entra acá, mismo criterio que
     # `cambio_jefatura` (independiente, no descalifica la identidad).
@@ -335,7 +335,7 @@ def _consumir_offset(restante_t: pd.Series, restante_th: pd.Series, offset: int)
 
 def contar_altas_bajas(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                         pares_hogar: pd.DataFrame, h: int) -> pd.DataFrame:
-    """`n_altas`/`n_bajas` de integrantes por hogar-par (D10): empareja
+    """`n_altas`/`n_bajas` de integrantes por hogar-par: empareja
     personas por sexo+edad, no por `COMPONENTE`."""
     # Matching goloso por offset de edad dentro de la ventana, probando primero
     # el offset más cercano al centro (el desplazamiento esperado) -- no
@@ -372,7 +372,7 @@ def contar_altas_bajas(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
 
 def contar_nacimientos(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                         pares_hogar: pd.DataFrame, h: int) -> pd.DataFrame:
-    """Nacimientos por hogar-par (D19): entre las altas que detecta
+    """Nacimientos por hogar-par: entre las altas que detecta
     `contar_altas_bajas`, cuenta las de edad `CODIGOS_NACIMIENTO_POR_HORIZONTE[h]`."""
     minimo, maximo = TOLERANCIA_EDAD_POR_HORIZONTE[h]
     claves = pares_hogar[["CODUSU", "NRO_HOGAR_t", "NRO_HOGAR_th"]].drop_duplicates()

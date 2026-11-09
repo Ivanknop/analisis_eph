@@ -15,7 +15,7 @@ from manifiesto_insumos import calcular_sha256
 
 # No calcula ninguna línea, backcast ni distancia -- eso vive en
 # `canasta_retropolada.py`. Los insumos de la canasta oficial (canastas regionales,
-# tabla de adulto equivalente, fuentes de contraste CEDLAS/UCA/INDEC
+# tabla de adulto equivalente, fuentes de contraste CEDLAS/INDEC
 # histórico) siguen en `data/canastas_indec/` (`canasta_regional.py`,
 # `adulto_equivalente.py`, `ponderadores.py`) -- no se tocan ni se
 # redescargan acá.
@@ -40,11 +40,11 @@ URLS = {
 # desde 2016). La columna "Anterior" (ENGHo 1985/86) se deja solo de contraste,
 # nunca como ancla.
 VALORES_DIC_2006_METODOLOGIA_22 = [
-    dict(concepto="cba_ae_metodologia_nueva", valor=149.13,
+    dict(concepto="cba_adulto_equivalente_metodologia_nueva", valor=149.13,
          unidad="pesos corrientes por adulto equivalente por mes", region="GBA",
          periodo="2006-12", pagina=15, cuadro="Cuadro 5",
          fuente='INDEC (2016), Metodología INDEC N°22, columna "Nuevo" (CBA)'),
-    dict(concepto="cbt_ae_metodologia_nueva", valor=389.28,
+    dict(concepto="cbt_adulto_equivalente_metodologia_nueva", valor=389.28,
          unidad="pesos corrientes por adulto equivalente por mes", region="GBA",
          periodo="2006-12", pagina=15, cuadro="Cuadro 5",
          fuente='INDEC (2016), Metodología INDEC N°22, columna "Nuevo" (CBT)'),
@@ -52,12 +52,12 @@ VALORES_DIC_2006_METODOLOGIA_22 = [
          unidad="inversa del coeficiente de Engel (adimensional)", region="GBA",
          periodo="2006-12", pagina=15, cuadro="Cuadro 5",
          fuente='INDEC (2016), Metodología INDEC N°22, columna "Nuevo" (ICE)'),
-    dict(concepto="cba_ae_metodologia_anterior", valor=134.14,
+    dict(concepto="cba_adulto_equivalente_metodologia_anterior", valor=134.14,
          unidad="pesos corrientes por adulto equivalente por mes", region="GBA",
          periodo="2006-12", pagina=15, cuadro="Cuadro 5",
          fuente='INDEC (2016), ídem, columna "Anterior" (CBA) -- ENGHo 1985/86, '
                 "solo contraste, no usar como ancla"),
-    dict(concepto="cbt_ae_metodologia_anterior", valor=291.08,
+    dict(concepto="cbt_adulto_equivalente_metodologia_anterior", valor=291.08,
          unidad="pesos corrientes por adulto equivalente por mes", region="GBA",
          periodo="2006-12", pagina=15, cuadro="Cuadro 5",
          fuente='INDEC (2016), ídem, columna "Anterior" (CBT) -- ENGHo 1985/86, '

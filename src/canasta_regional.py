@@ -1,5 +1,5 @@
 """Canasta básica alimentaria y total (CBA/CBT) por región, por adulto
-equivalente -- serie oficial INDEC redistribuida por datos.gob.ar (D25).
+equivalente -- serie oficial INDEC redistribuida por datos.gob.ar.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ MetodoVentana = Literal["a_mismo_trimestre", "b_un_mes_atras"]
 
 def descargar_canastas(destino: Path, urls: dict[str, str] = URLS_CBA_CBT) -> dict:
     """Baja CBA y CBT regional a `destino/{cba,cbt}_regional_crudo.csv` +
-    `destino/manifest.json`. No reintenta: propaga el error tal cual (D25)."""
+    `destino/manifest.json`. No reintenta: propaga el error tal cual."""
     destino.mkdir(parents=True, exist_ok=True)
     manifest = {"descargado_utc": datetime.now(timezone.utc).isoformat(), "archivos": {}}
     for nombre, url in urls.items():
@@ -68,7 +68,7 @@ def _meses_ventana(anio: int, trimestre: int, metodo_ventana: MetodoVentana) -> 
 
 def agregar_trimestral(largo: pd.DataFrame, variable: str, metodo_ventana: MetodoVentana) -> pd.DataFrame:
     """Promedio mensual->trimestral de `variable` por `REGION`, según
-    `metodo_ventana` (D25). `canasta_ventana_parcial=True` si la ventana
+    `metodo_ventana`. `canasta_ventana_parcial=True` si la ventana
     pedida tiene menos de 3 meses con dato."""
     # metodo_ventana: "a_mismo_trimestre" = promedio de los 3 meses del
     # trimestre; "b_un_mes_atras" = corrido un mes atrás (mes de referencia
@@ -89,16 +89,16 @@ def agregar_trimestral(largo: pd.DataFrame, variable: str, metodo_ventana: Metod
 
 
 def construir_canasta_trimestral(destino: Path, metodo_ventana: MetodoVentana) -> pd.DataFrame:
-    """CBA/CBT trimestral por región (`ANO4, TRIMESTRE, REGION, cba_ae, cbt_ae,
+    """CBA/CBT trimestral por región (`ANO4, TRIMESTRE, REGION, cba_adulto_equivalente, cbt_adulto_equivalente,
     canasta_ventana_parcial`), a partir de los CSV crudos ya descargados en
     `destino` (`descargar_canastas`)."""
-    cba = agregar_trimestral(cargar_canasta_larga(destino / "cba_regional_crudo.csv", "cba_ae"),
-                              "cba_ae", metodo_ventana)
-    cbt = agregar_trimestral(cargar_canasta_larga(destino / "cbt_regional_crudo.csv", "cbt_ae"),
-                              "cbt_ae", metodo_ventana)
+    cba = agregar_trimestral(cargar_canasta_larga(destino / "cba_regional_crudo.csv", "cba_adulto_equivalente"),
+                              "cba_adulto_equivalente", metodo_ventana)
+    cbt = agregar_trimestral(cargar_canasta_larga(destino / "cbt_regional_crudo.csv", "cbt_adulto_equivalente"),
+                              "cbt_adulto_equivalente", metodo_ventana)
     combinado = cba.merge(cbt, on=["ANO4", "TRIMESTRE", "REGION"], how="outer",
                            suffixes=("", "_cbt"))
-    # CBA y CBT comparten la misma cobertura mensual (D25, sección 2) -- si alguna
+    # CBA y CBT comparten la misma cobertura mensual -- si alguna
     # vez difiere, mejor que falle acá a que el flag quede ambiguo en silencio.
     assert (combinado["canasta_ventana_parcial"] == combinado["canasta_ventana_parcial_cbt"]).all()
     return combinado.drop(columns="canasta_ventana_parcial_cbt")

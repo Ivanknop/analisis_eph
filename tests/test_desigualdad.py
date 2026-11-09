@@ -35,14 +35,14 @@ class TestGiniPonderado:
             gini_ponderado([0.0, 10.0, 10.0, 100.0]))
 
     def test_los_ceros_entran_en_la_distribucion(self):
-        """D3: `IPCF == 0` no es "sin ingreso", no se descarta -- sacarlo baja el Gini."""
+        """`IPCF == 0` no es "sin ingreso", no se descarta -- sacarlo baja el Gini."""
         con_ceros = gini_ponderado([0, 0, 10, 20, 30])
         sin_ceros = gini_ponderado([10, 20, 30])
         assert con_ceros > sin_ceros
         assert con_ceros == pytest.approx(gini_ponderado([0, 0, 10, 20, 30], [1, 1, 1, 1, 1]))
 
     def test_pesos_cero_se_ignoran(self):
-        """Los no declarantes de la era regular llegan con PONDIH == 0 (D3): tienen que
+        """Los no declarantes de la era regular llegan con PONDIH == 0: tienen que
         salir del calculo sin dejar rastro, no contar como ingreso cero."""
         con_pesos_cero = gini_ponderado([0, 0, 10, 20, 30], [0, 0, 1, 1, 1])
         assert con_pesos_cero == pytest.approx(gini_ponderado([10, 20, 30]))

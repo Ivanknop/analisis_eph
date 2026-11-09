@@ -1,5 +1,5 @@
 """Coeficiente de Gini ponderado, normalizacion por media ponderada e IC95% por
-bootstrap de cluster -- insumos de la seccion de desigualdad del notebook 05 (D17).
+bootstrap de cluster -- insumos de la seccion de desigualdad del notebook 05.
 """
 # Funciones puras (reciben arrays/DataFrames, no tocan `data/`), mismo criterio que
 # panel.py, trayectorias.py y bootstrap.py -- testeables con fixtures sinteticas.

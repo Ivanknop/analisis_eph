@@ -1,5 +1,5 @@
 """Tests de `src/perfil_hogar.py`. El módulo no tenía tests antes de esta ronda --
-se agregan solo para `clasificar_situacion_escolar` (D22), no retroactivos a las
+se agregan solo para `clasificar_situacion_escolar`, no retroactivos a las
 funciones existentes."""
 import pandas as pd
 

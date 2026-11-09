@@ -24,22 +24,22 @@ ORIGEN_OFICIAL = "oficial"
 ORIGEN_DOS_ANCLAS = "retropolada_2_anclas"
 ORIGEN_UNA_ANCLA = "retropolada_1_ancla"
 
-_CONCEPTO_POR_VARIABLE = {"cba_ae": "cba_ae_metodologia_nueva", "cbt_ae": "cbt_ae_metodologia_nueva"}
+_CONCEPTO_POR_VARIABLE = {"cba_adulto_equivalente": "cba_adulto_equivalente_metodologia_nueva", "cbt_adulto_equivalente": "cbt_adulto_equivalente_metodologia_nueva"}
 
 
 def cargar_ancla_dic_2006(ruta_csv: Path) -> dict[str, float]:
-    """Ancla de diciembre 2006 (columna "Nuevo" de Metodología INDEC N°22) -- {"cba_ae": 149.13, "cbt_ae": 389.28}."""
+    """Ancla de diciembre 2006 (columna "Nuevo" de Metodología INDEC N°22) -- {"cba_adulto_equivalente": 149.13, "cbt_adulto_equivalente": 389.28}."""
     valores = pd.read_csv(ruta_csv).set_index("concepto")["valor"]
     return {variable: float(valores[concepto]) for variable, concepto in _CONCEPTO_POR_VARIABLE.items()}
 
 
 def cargar_ancla_abr_2016(canastas_dir: Path) -> pd.DataFrame:
-    """Ancla de abril 2016 por región, canasta oficial -- REGION, cba_ae, cbt_ae (6 filas)."""
-    cba = cargar_canasta_larga(canastas_dir / "cba_regional_crudo.csv", "cba_ae")
-    cbt = cargar_canasta_larga(canastas_dir / "cbt_regional_crudo.csv", "cbt_ae")
-    cba_abr = cba[(cba["ANO4"] == 2016) & (cba["MES"] == 4)][["REGION", "cba_ae"]]
-    cbt_abr = cbt[(cbt["ANO4"] == 2016) & (cbt["MES"] == 4)][["REGION", "cbt_ae"]]
-    return cba_abr.merge(cbt_abr, on="REGION").reset_index(drop=True)
+    """Ancla de abril 2016 por región, canasta oficial -- REGION, cba_adulto_equivalente, cbt_adulto_equivalente (6 filas)."""
+    cba = cargar_canasta_larga(canastas_dir / "cba_regional_crudo.csv", "cba_adulto_equivalente")
+    cbt = cargar_canasta_larga(canastas_dir / "cbt_regional_crudo.csv", "cbt_adulto_equivalente")
+    cba_abril_2016 = cba[(cba["ANO4"] == 2016) & (cba["MES"] == 4)][["REGION", "cba_adulto_equivalente"]]
+    cbt_abril_2016 = cbt[(cbt["ANO4"] == 2016) & (cbt["MES"] == 4)][["REGION", "cbt_adulto_equivalente"]]
+    return cba_abril_2016.merge(cbt_abril_2016, on="REGION").reset_index(drop=True)
 
 
 def encadenar_indice(indec: pd.Series, cifra: pd.Series, mes_empalme: pd.Timestamp = MES_EMPALME_CIFRA,
@@ -79,7 +79,7 @@ def blend_dos_anclas(c_b: pd.Series, c_a: pd.Series, pesos: pd.Series) -> pd.Ser
 
 def construir_canasta_gba_mensual(valor_ancla_dic_2006: float, valor_ancla_abr_2016: float,
                                    indice: pd.Series, variable: str) -> pd.DataFrame:
-    """Canasta GBA mensual 2003-01/2016-03 para `variable` (cba_ae o cbt_ae): un
+    """Canasta GBA mensual 2003-01/2016-03 para `variable` (cba_adulto_equivalente o cbt_adulto_equivalente): un
     ancla en 2003-2006, dos anclas (más la versión de sensibilidad de un solo
     ancla) en 2007-01/2016-03. Devuelve REGION(=GBA), ANO4, MES, `variable`, origen."""
     tramo_2003_2006 = indice[(indice.index >= INICIO_RETROPOLACION) & (indice.index <= ANCLA_DIC_2006)]
@@ -119,7 +119,7 @@ def extender_regiones(canasta_gba: pd.DataFrame, ancla_abr_2016: pd.DataFrame, v
 
 
 def agregar_trimestral_por_origen(mensual: pd.DataFrame, variable: str) -> pd.DataFrame:
-    """Promedio mensual->trimestral ("a_mismo_trimestre", D25/D26) de `variable`,
+    """Promedio mensual->trimestral ("a_mismo_trimestre") de `variable`,
     separado por `origen` -- reusa `canasta_regional.agregar_trimestral` por grupo
     (esa función no conoce la columna `origen`)."""
     partes = []

@@ -90,7 +90,7 @@ class TestClasificarTransicion:
 
 def _distancia(filas):
     columnas = ["CODUSU", "NRO_HOGAR", "ANO4", "TRIMESTRE", "REGION", "AGLOMERADO", "era",
-                "ITF", "PONDIH", "unidades_ae", "cbt_ae", "ratio_lp", "log_ratio_lp", "pobre"]
+                "ITF", "PONDIH", "unidades_adulto_equivalente", "cbt_adulto_equivalente", "ratio_linea_pobreza", "log_ratio_linea_pobreza", "pobre"]
     return pd.DataFrame(filas, columns=columnas)
 
 

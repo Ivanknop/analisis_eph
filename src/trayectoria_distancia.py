@@ -1,16 +1,16 @@
-"""Trayectorias de distancia a la línea de pobreza (D33-D34): variación
-entre `t` y `t+h` de `distancia_lp.calcular_distancia_lp`, sobre los pares
-del panel ya vinculados (D9).
+"""Trayectorias de distancia a la línea de pobreza: variación
+entre `t` y `t+h` de `distancia_linea_pobreza.calcular_distancia_linea_pobreza`, sobre los pares
+del panel ya vinculados.
 """
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
-# No usa `src/trayectorias.py` (D12/D13, intocable esta ronda): esto encadena
+# No usa `src/trayectorias.py` (intocable esta ronda): esto encadena
 # un solo par por vez, no las 4 visitas.
 COLUMNAS_DISTANCIA = ["CODUSU", "NRO_HOGAR", "ANO4", "TRIMESTRE", "REGION", "AGLOMERADO", "era",
-                       "ITF", "PONDIH", "unidades_ae", "cbt_ae", "ratio_lp", "log_ratio_lp", "pobre"]
+                       "ITF", "PONDIH", "unidades_adulto_equivalente", "cbt_adulto_equivalente", "ratio_linea_pobreza", "log_ratio_linea_pobreza", "pobre"]
 
 
 def _preparar_lado(distancia: pd.DataFrame, sufijo: str) -> pd.DataFrame:
@@ -27,8 +27,8 @@ def calcular_variacion_simetrica(ratio_t: pd.Series, ratio_th: pd.Series) -> pd.
     return ((b - a) / denominador.replace(0, np.nan)).astype("Float64")
 
 
-def descomponer_variacion(itf_t: pd.Series, itf_th: pd.Series, cbt_ae_t: pd.Series, cbt_ae_th: pd.Series,
-                           unidades_ae_t: pd.Series, unidades_ae_th: pd.Series) -> pd.DataFrame:
+def descomponer_variacion(itf_t: pd.Series, itf_th: pd.Series, cbt_adulto_equivalente_t: pd.Series, cbt_adulto_equivalente_th: pd.Series,
+                           unidades_adulto_equivalente_t: pd.Series, unidades_adulto_equivalente_th: pd.Series) -> pd.DataFrame:
     """`aporte_ingreso + aporte_precios + aporte_composicion == variacion_log`,
     solo definido con `ITF > 0` en ambas puntas (si no, `log(ITF)` no existe)."""
     definido = (itf_t.astype(float) > 0) & (itf_th.astype(float) > 0)
@@ -40,14 +40,14 @@ def descomponer_variacion(itf_t: pd.Series, itf_th: pd.Series, cbt_ae_t: pd.Seri
 
     return pd.DataFrame({
         "aporte_ingreso": _log_diff(itf_t, itf_th),
-        "aporte_precios": -_log_diff(cbt_ae_t, cbt_ae_th),
-        "aporte_composicion": -_log_diff(unidades_ae_t, unidades_ae_th),
+        "aporte_precios": -_log_diff(cbt_adulto_equivalente_t, cbt_adulto_equivalente_th),
+        "aporte_composicion": -_log_diff(unidades_adulto_equivalente_t, unidades_adulto_equivalente_th),
     })
 
 
 def clasificar_direccion(variacion_simetrica: pd.Series, umbral: float = 0.10) -> pd.Series:
     """`"mejora"` (`variacion > umbral`), `"empeora"` (`< -umbral`), `"estable"`
-    (dentro de `±umbral`) -- default `umbral=0.10` (D33, sensibilidad ±5/±20%
+    (dentro de `±umbral`) -- default `umbral=0.10` (sensibilidad ±5/±20%
     reportada aparte, no en esta función)."""
     resultado = pd.Series(pd.NA, index=variacion_simetrica.index, dtype="object")
     valido = variacion_simetrica.notna()
@@ -107,7 +107,7 @@ def agregar_tendencia_previa(pares: pd.DataFrame, pares_h1_t_menos_1: pd.DataFra
     """Agrega `variacion_simetrica_previa` (candidata de feature, nunca
     objetivo) y `gap_previo`: última observación anterior disponible del
     mismo hogar, no solo `t-1`."""
-    # Por la rotación 2-2-2 (D9/D12), un hogar solo puede tener una
+    # Por la rotación 2-2-2, un hogar solo puede tener una
     # observación anterior en 2 posiciones posibles, nunca las dos a la vez:
     # t-1 (gap_previo=0, 2ª visita en t) o t-4 (gap_previo=3, 3ª visita, tras
     # el hueco de 2 trimestres). En la 1ª visita (recién entra) ninguna
@@ -147,25 +147,24 @@ def agregar_tendencia_previa(pares: pd.DataFrame, pares_h1_t_menos_1: pd.DataFra
 
 def construir_pares_distancia(distancia_t: pd.DataFrame, distancia_th: pd.DataFrame,
                                pares_hogar: pd.DataFrame) -> pd.DataFrame:
-    """Par hogar `t`->`t+h` con distancia en ambas puntas y sus variaciones
-    (D33/D34)."""
+    """Par hogar `t`->`t+h` con distancia en ambas puntas y sus variaciones."""
     resultado = pares_hogar[["CODUSU", "NRO_HOGAR_t", "NRO_HOGAR_th", "identidad_confirmada"]].merge(
         _preparar_lado(distancia_t, "t"), on=["CODUSU", "NRO_HOGAR_t"], how="left")
     resultado = resultado.merge(_preparar_lado(distancia_th, "th"), on=["CODUSU", "NRO_HOGAR_th"], how="left")
 
-    resultado["variacion_simetrica"] = calcular_variacion_simetrica(resultado["ratio_lp_t"], resultado["ratio_lp_th"])
-    resultado["variacion_log"] = resultado["log_ratio_lp_th"] - resultado["log_ratio_lp_t"]
-    resultado["diferencia_absoluta"] = resultado["ratio_lp_th"].astype(float) - resultado["ratio_lp_t"].astype(float)
+    resultado["variacion_simetrica"] = calcular_variacion_simetrica(resultado["ratio_linea_pobreza_t"], resultado["ratio_linea_pobreza_th"])
+    resultado["variacion_log"] = resultado["log_ratio_linea_pobreza_th"] - resultado["log_ratio_linea_pobreza_t"]
+    resultado["diferencia_absoluta"] = resultado["ratio_linea_pobreza_th"].astype(float) - resultado["ratio_linea_pobreza_t"].astype(float)
 
     descomposicion = descomponer_variacion(
-        resultado["ITF_t"], resultado["ITF_th"], resultado["cbt_ae_t"], resultado["cbt_ae_th"],
-        resultado["unidades_ae_t"], resultado["unidades_ae_th"])
+        resultado["ITF_t"], resultado["ITF_th"], resultado["cbt_adulto_equivalente_t"], resultado["cbt_adulto_equivalente_th"],
+        resultado["unidades_adulto_equivalente_t"], resultado["unidades_adulto_equivalente_th"])
     resultado = pd.concat([resultado, descomposicion], axis=1)
 
     resultado["direccion"] = clasificar_direccion(resultado["variacion_simetrica"])
     resultado["transicion"] = clasificar_transicion(resultado["pobre_t"], resultado["pobre_th"])
-    # `identidad_confirmada` puede ser `False` (otro hogar en la misma vivienda,
-    # D10) sin que la fila se descarte -- `par_valido_*` marca cuáles sirven
+    # `identidad_confirmada` puede ser `False` (otro hogar en la misma vivienda)
+    # sin que la fila se descarte -- `par_valido_*` marca cuáles sirven
     # para medir variación real, sin perder las demás (quedan para auditar
     # aparte). Dos filtros, uno por objetivo (cada uno exige que SU propia
     # variación no sea nula -- no son intercambiables: `ITF=0` admite

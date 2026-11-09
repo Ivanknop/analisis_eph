@@ -409,7 +409,7 @@ class TestClasificarVinculacionTrimestre:
         assert r["pct_atricion_neta_rotacion"] == pytest.approx(25.0)
 
     def test_desglose_a_nivel_hogar_con_vivienda_multihogar(self):
-        # V1 tiene 2 hogares en t (multi-hogar, D9): solo el hogar 1 matchea en th,
+        # V1 tiene 2 hogares en t (multi-hogar): solo el hogar 1 matchea en th,
         # el hogar 2 queda "sin_match_multihogar" aunque su vivienda esté vinculada.
         # V2 (1 hogar) matchea. V3 no está más en th (vivienda_sin_par). V4 sigue en
         # th pero con otro NRO_HOGAR (hogar_reemplazado). 4 viviendas, 5 hogares.

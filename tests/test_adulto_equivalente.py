@@ -1,14 +1,13 @@
-"""Tests de `src/adulto_equivalente.py`. Todo con Series/DataFrames sintéticos
-chicos armados a mano -- mismo criterio que tests/test_panel.py."""
+"""Tests de `src/adulto_equivalente.py`"""
 import pandas as pd
 import pytest
 
-from adulto_equivalente import calcular_unidades_ae_hogar, calcular_unidades_equivalentes
+from adulto_equivalente import calcular_unidades_adulto_equivalente_hogar, calcular_unidades_equivalentes
 
 
 class TestCalcularUnidadesEquivalentes:
     def test_menor_de_un_anio_ch06_menos_uno(self):
-        # D19: CH06 nunca vale 0, los menores de 1 año están codificados -1.
+        # CH06 nunca vale 0, los menores de 1 año están codificados -1.
         r = calcular_unidades_equivalentes(pd.Series([1, 2]), pd.Series([-1, -1]))
         assert r.tolist() == [0.35, 0.35]
 
@@ -22,12 +21,11 @@ class TestCalcularUnidadesEquivalentes:
 
     def test_bordes_de_tramo_adolescente(self):
         # El ejemplo del codebook INDEC: mujeres de 46 a 60 años = 76% del varón
-        # de la misma edad -- confirma que el tramo 46-60 toma el valor correcto.
+        # de la misma edad 
         r = calcular_unidades_equivalentes(pd.Series([2, 1]), pd.Series([46, 46]))
         assert r.tolist() == [0.76, 1.00]
 
-    def test_mayor_de_75_sin_techo(self):
-        # CH06 real llega hasta 110 en los datos -- el último tramo no tiene techo.
+    def test_mayor_de_75(self):
         r = calcular_unidades_equivalentes(pd.Series([1, 1]), pd.Series([76, 110]))
         assert r.tolist() == [0.74, 0.74]
 
@@ -51,16 +49,16 @@ class TestCalcularUnidadesAeHogar:
         individual = self._individual([
             ["V1", 1, 1, 35], ["V1", 1, 2, 31], ["V1", 1, 1, 6], ["V1", 1, 2, 8],
         ])
-        r = calcular_unidades_ae_hogar(individual)
+        r = calcular_unidades_adulto_equivalente_hogar(individual)
         assert r.loc[("V1", 1)] == pytest.approx(3.09)
 
     def test_distintos_hogares_no_se_mezclan(self):
         individual = self._individual([["V1", 1, 1, 35], ["V2", 1, 2, 35]])
-        r = calcular_unidades_ae_hogar(individual)
+        r = calcular_unidades_adulto_equivalente_hogar(individual)
         assert r.loc[("V1", 1)] == pytest.approx(1.00)
         assert r.loc[("V2", 1)] == pytest.approx(0.77)
 
     def test_un_integrante_indeterminable_anula_el_hogar(self):
         individual = self._individual([["V1", 1, 1, 35], ["V1", 1, 9, 30]])
-        r = calcular_unidades_ae_hogar(individual)
+        r = calcular_unidades_adulto_equivalente_hogar(individual)
         assert pd.isna(r.loc[("V1", 1)])

@@ -68,7 +68,7 @@ def _asignar_estado(rel: pd.DataFrame, col_nro_hogar: str, estables_por_bucket: 
 def emparejar_activos(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
                        pares_hogar: pd.DataFrame, h: int,
                        columnas_extra_th: tuple[str, ...] = ()) -> dict[str, pd.DataFrame]:
-    """Empareja activos por sexo+edad (ventana D10). Devuelve
+    """Empareja activos por sexo+edad (ventana de tolerancia por horizonte). Devuelve
     `{"t": ..., "th": ...}` con `categoria_precariedad`, `estado_persona`
     (`"estable"`/`"alta"`/`"baja"`) y `empate`."""
     minimo, maximo = TOLERANCIA_EDAD_POR_HORIZONTE[h]
@@ -122,7 +122,7 @@ def calcular_se_jubila(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
         left_on=["CODUSU", "NRO_HOGAR"], right_on=["CODUSU", "NRO_HOGAR_th"])
 
     # Excluir de jubilados_th a quien ya tenía CAT_INAC==1 en t (mismo hogar, sexo,
-    # edad en ventana D6) -- medido en datos reales (T0 2026-10-05): ~1.3% de los
+    # edad en la misma ventana de tolerancia) -- medido en datos reales (T0 2026-10-05): ~1.3% de los
     # matches usaban como candidato a un jubilado preexistente, no a quien realmente
     # transicionó (un activo de t nunca puede ser ese candidato -- CAT_INAC==1
     # implica ESTADO∉{1,2} -- así que no se pierde ningún caso real).
@@ -156,7 +156,7 @@ def calcular_se_jubila(individual_t: pd.DataFrame, individual_th: pd.DataFrame,
 def _clasificar_tipo_alta(altas_menor: pd.DataFrame, individual_t: pd.DataFrame,
                            pares_hogar: pd.DataFrame, h: int) -> pd.Series:
     """`"inactivo_a_activo"` si ya había alguien del mismo hogar/sexo inactivo
-    en `t` con edad en la ventana D6; `"entra_activo"` si la persona es
+    en `t` con edad en la ventana de tolerancia; `"entra_activo"` si la persona es
     nueva en el hogar."""
     minimo, maximo = TOLERANCIA_EDAD_POR_HORIZONTE[h]
     estado_t = pd.to_numeric(individual_t["ESTADO"], errors="coerce")
@@ -183,7 +183,7 @@ def calcular_alta_activo_menor(individual_t: pd.DataFrame, individual_th: pd.Dat
                                 edad_corte: int = EDAD_CORTE_MENOR) -> pd.DataFrame:
     """Por hogar-par: altas de activo con `CH06 < edad_corte` en `t+h`,
     separadas por `situacion_escolar_th` y por `tipo_alta`."""
-    # D19: la entrada de un menor al trabajo no cuenta como mejora del eje laboral,
+    # La entrada de un menor al trabajo no cuenta como mejora del eje laboral,
     # se cruza siempre con si sigue en la escuela y con si ya estaba en el hogar.
     emparejados = emparejar_activos(individual_t, individual_th, pares_hogar, h,
                                      columnas_extra_th=("CH10", "NIVEL_ED"))

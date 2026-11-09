@@ -1,5 +1,5 @@
 """Diagnóstico de trayectorias de hogares en 4 apariciones superpuestas
-(t, t+1, t+4, t+5) sobre el panel vinculado del notebook 02 (D12).
+(t, t+1, t+4, t+5) sobre el panel vinculado del notebook 02.
 """
 # Todas las funciones son puras (reciben DataFrames/dicts, no tocan `data/`)
 # para poder testearlas con fixtures sintéticas chicas
@@ -11,13 +11,13 @@ import pandas as pd
 from panel import sumar_trimestres
 
 # La rotación 2-2-2 es propiedad de la VIVIENDA (INDEC vuelve a visitarla
-# según su cronograma, viva ahí quien viva); la identidad de HOGAR (D9) es
+# según su cronograma, viva ahí quien viva); la identidad de HOGAR es
 # otra cosa -- si es la misma familia. `inferir_visita` usa la primera,
 # `encadenar_trayectoria` y el resto usan la segunda.
 CLAVE_VIVIENDA = ["CODUSU", "AGLOMERADO"]
 CLAVE_HOGAR = ["CODUSU", "NRO_HOGAR", "AGLOMERADO"]
 
-# Offsets relativos a `t` evaluados por `inferir_visita` (D12): los 4
+# Offsets relativos a `t` evaluados por `inferir_visita`: los 4
 # pares de visitas posibles están separados por 1, 4 o 5 trimestres entre
 # sí, salvo el par (visita 2, visita 3), separado por 3 -- de ahí el ±3,
 # necesario para que las 4 hipótesis prediccionen sobre el mismo conjunto
@@ -43,12 +43,12 @@ def claves_vivienda(hogar: pd.DataFrame) -> pd.DataFrame:
 
 
 def claves_hogar(hogar: pd.DataFrame) -> pd.DataFrame:
-    """`CODUSU+NRO_HOGAR+AGLOMERADO` únicos de una partición de `02_nucleo/hogar` (unidad de identidad, D9)."""
+    """`CODUSU+NRO_HOGAR+AGLOMERADO` únicos de una partición de `02_nucleo/hogar` (unidad de identidad)."""
     return hogar[CLAVE_HOGAR].drop_duplicates().reset_index(drop=True)
 
 
 def inferir_visita(presencia_vivienda: dict[int, pd.DataFrame | None]) -> pd.DataFrame:
-    """Infiere la visita (1-4, D12) de cada vivienda, por selección de
+    """Infiere la visita (1-4) de cada vivienda, por selección de
     hipótesis sobre `OFFSETS_VISITA`."""
     universo = presencia_vivienda[0][CLAVE_VIVIENDA].drop_duplicates().reset_index(drop=True)
 
@@ -56,8 +56,8 @@ def inferir_visita(presencia_vivienda: dict[int, pd.DataFrame | None]) -> pd.Dat
     for offset in OFFSETS_VISITA:
         tabla = presencia_vivienda.get(offset)
         if tabla is None:
-            # `None` = "no determinable" (gap de publicación o cruce de era,
-            # D7) -- lo decide quien llama, no esta función.
+            # `None` = "no determinable" (gap de publicación o cruce de era)
+            # -- lo decide quien llama, no esta función.
             presente_por_offset[offset] = None
             continue
         claves = tabla[CLAVE_VIVIENDA].drop_duplicates().assign(_presente=True)
@@ -159,7 +159,7 @@ def verificar_contra_h4_t1(trayectoria: pd.DataFrame, pares_h4_t1: pd.DataFrame)
 def cohorte_completable(anio_t0: int, trimestre_t0: int, trimestres_publicados: set[tuple[int, int]],
                          es_historico) -> dict:
     """Si la cohorte que entra en `(anio_t0, trimestre_t0)` puede completar
-    las 4 visitas (trimestres publicados, D7 no cruzado)."""
+    las 4 visitas (trimestres publicados, sin cruzar la frontera histórico/regular)."""
     # `es_historico` se recibe como parámetro, no se importa de `armonizacion`,
     # para no acoplar este módulo a ese otro.
     trimestres = {nombre: sumar_trimestres(anio_t0, trimestre_t0, offset)
@@ -168,14 +168,14 @@ def cohorte_completable(anio_t0: int, trimestre_t0: int, trimestres_publicados: 
     if faltantes:
         return {"completable": False, "motivo": f"trimestre no publicado: {', '.join(faltantes)}"}
     if es_historico(*trimestres["t0"]) != es_historico(*trimestres["t0+4"]):
-        return {"completable": False, "motivo": "eslabón h=4 cruza la frontera histórico/regular (D7)"}
+        return {"completable": False, "motivo": "eslabón h=4 cruza la frontera histórico/regular"}
     return {"completable": True, "motivo": None}
 
 
 def encadenar_dos_eslabones(pares_1: pd.DataFrame, pares_2: pd.DataFrame) -> pd.DataFrame:
     """Intersección por clave de hogar de 2 eslabones consecutivos de pares
     (no 3, a diferencia de `encadenar_trayectoria`) -- insumo de los diseños
-    de panel dinámico de D13."""
+    de panel dinámico."""
     resultado = _eslabon(pares_1, "identidad_confirmada_1").merge(
         _eslabon(pares_2, "identidad_confirmada_2"), on=CLAVE_HOGAR, how="inner")
     resultado["identidad_confirmada_ambos"] = resultado["identidad_confirmada_1"] & resultado["identidad_confirmada_2"]

@@ -43,10 +43,10 @@ class TestCargarCanastaLarga:
             "2016-04-01,100.0,90.0\n"
             "2016-05-01,105.0,95.0\n"
         )
-        r = cargar_canasta_larga(csv, "cba_ae")
-        assert set(r.columns) == {"REGION", "ANO4", "MES", "cba_ae"}
+        r = cargar_canasta_larga(csv, "cba_adulto_equivalente")
+        assert set(r.columns) == {"REGION", "ANO4", "MES", "cba_adulto_equivalente"}
         fila_gba_abril = r[(r["REGION"] == 1) & (r["MES"] == 4)].iloc[0]
-        assert fila_gba_abril["cba_ae"] == pytest.approx(100.0)
+        assert fila_gba_abril["cba_adulto_equivalente"] == pytest.approx(100.0)
         assert set(r["REGION"]) == {REGION_POR_COLUMNA["gran_buenos_aires"], REGION_POR_COLUMNA["cuyo"]}
 
 
@@ -64,25 +64,25 @@ class TestMesesVentana:
 
 class TestAgregarTrimestral:
     def _largo(self):
-        # Replica el borde real de la serie (D25): arranca en abril 2016, no hay
+        # Replica el borde real de la serie: arranca en abril 2016, no hay
         # marzo 2016.
         filas = []
         for anio, mes, valor in [(2016, 4, 100), (2016, 5, 110), (2016, 6, 120)]:
-            filas.append({"REGION": 1, "ANO4": anio, "MES": mes, "cba_ae": valor})
+            filas.append({"REGION": 1, "ANO4": anio, "MES": mes, "cba_adulto_equivalente": valor})
         return pd.DataFrame(filas)
 
     def test_promedio_mismo_trimestre(self):
-        r = agregar_trimestral(self._largo(), "cba_ae", "a_mismo_trimestre")
+        r = agregar_trimestral(self._largo(), "cba_adulto_equivalente", "a_mismo_trimestre")
         fila = r[(r["ANO4"] == 2016) & (r["TRIMESTRE"] == 2)].iloc[0]
-        assert fila["cba_ae"] == pytest.approx((100 + 110 + 120) / 3)
+        assert fila["cba_adulto_equivalente"] == pytest.approx((100 + 110 + 120) / 3)
         assert fila["canasta_ventana_parcial"] == False  # noqa: E712
 
     def test_ventana_parcial_en_el_borde_de_la_serie(self):
         # La ventana "b" de 2016T2 pide marzo 2016, que no está en la serie
-        # (D25: la serie oficial arranca en abril 2016) -- la fixture lo replica.
-        r = agregar_trimestral(self._largo(), "cba_ae", "b_un_mes_atras")
+        # (la serie oficial arranca en abril 2016) -- la fixture lo replica.
+        r = agregar_trimestral(self._largo(), "cba_adulto_equivalente", "b_un_mes_atras")
         fila = r[(r["ANO4"] == 2016) & (r["TRIMESTRE"] == 2)].iloc[0]
-        assert fila["cba_ae"] == pytest.approx((100 + 110) / 2)
+        assert fila["cba_adulto_equivalente"] == pytest.approx((100 + 110) / 2)
         assert fila["canasta_ventana_parcial"] == True  # noqa: E712
 
 
@@ -94,5 +94,5 @@ class TestConstruirCanastaTrimestral:
             "indice_tiempo,gran_buenos_aires\n2016-04-01,200.0\n2016-05-01,200.0\n2016-06-01,200.0\n")
         r = construir_canasta_trimestral(tmp_path, "a_mismo_trimestre")
         fila = r[(r["ANO4"] == 2016) & (r["TRIMESTRE"] == 2) & (r["REGION"] == 1)].iloc[0]
-        assert fila["cba_ae"] == pytest.approx(100.0)
-        assert fila["cbt_ae"] == pytest.approx(200.0)
+        assert fila["cba_adulto_equivalente"] == pytest.approx(100.0)
+        assert fila["cbt_adulto_equivalente"] == pytest.approx(200.0)

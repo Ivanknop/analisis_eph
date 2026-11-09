@@ -1,5 +1,5 @@
 """Ponderador de hogar para la era histórica de la EPH (sin `PONDIH`),
-usado por la capa de distancia histórica (`data/02b_distancia_lp/hogar/`,
+usado por la capa de distancia histórica (`data/02b_distancia_linea_pobreza/hogar/`,
 era retropolada).
 """
 from __future__ import annotations

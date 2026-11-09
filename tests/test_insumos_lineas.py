@@ -85,8 +85,8 @@ class TestEscribirValoresDic2006:
         df = escribir_valores_dic_2006(destino)
         assert len(df) == len(VALORES_DIC_2006_METODOLOGIA_22) == 5
         assert set(df["concepto"]) == {
-            "cba_ae_metodologia_nueva", "cbt_ae_metodologia_nueva", "ice_metodologia_nueva",
-            "cba_ae_metodologia_anterior", "cbt_ae_metodologia_anterior",
+            "cba_adulto_equivalente_metodologia_nueva", "cbt_adulto_equivalente_metodologia_nueva", "ice_metodologia_nueva",
+            "cba_adulto_equivalente_metodologia_anterior", "cbt_adulto_equivalente_metodologia_anterior",
         }
         assert (df["pagina"] == 15).all()
         assert (df["cuadro"] == "Cuadro 5").all()
@@ -98,8 +98,8 @@ class TestEscribirValoresDic2006:
         # caras que la ENGHo 1985/86 para el mismo mes) -- no valida el valor
         # exacto, solo que no se invirtió un signo al transcribir.
         df = pd.DataFrame(VALORES_DIC_2006_METODOLOGIA_22).set_index("concepto")["valor"]
-        assert df["cba_ae_metodologia_nueva"] > df["cba_ae_metodologia_anterior"]
-        assert df["cbt_ae_metodologia_nueva"] > df["cbt_ae_metodologia_anterior"]
+        assert df["cba_adulto_equivalente_metodologia_nueva"] > df["cba_adulto_equivalente_metodologia_anterior"]
+        assert df["cbt_adulto_equivalente_metodologia_nueva"] > df["cbt_adulto_equivalente_metodologia_anterior"]
 
 
 class TestCargarIpcGbaHistorico:
