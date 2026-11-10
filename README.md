@@ -73,6 +73,7 @@ Las notebooks se corren en orden: cada una lee la capa que escribió la anterior
 | `06c_trayectorias_distancia_historica` | `data/02b_distancia_linea_pobreza/hogar/`, `data/03_panel/`, `data/01_armonizado/` | `data/05_trayectoria_distancia/{pares_h1,pares_h4}/` (era `"historica"`, 2003T3–2015T2, mismas particiones que `06`; agrega `par_valido_c`, imputación y flags de corte) |
 | `06b_diagnosticos_trayectoria` | `data/05_trayectoria_distancia/` | CSV descriptivos (tendencia, regresión a la media, conteos train/holdout) |
 | `06d_diagnosticos_dos_universos` | `data/05_trayectoria_distancia/`, `data/02b_distancia_linea_pobreza/hogar/` | `dos_universos_*.csv` — 2003–2025 contra 2016–2025: conteos, líneas base, dispersión por era, sensibilidades |
+| `07_features` | `data/05_trayectoria_distancia/`, `data/02b_distancia_linea_pobreza/hogar/`, `data/02_nucleo/`, `data/01_armonizado/`, `data/03_panel/` | `data/06_features/{pares_h1,pares_h4}/` — matriz de predictores medidos en `t` o antes, una fila por par de 05 (misma clave, sin filtrar; el objetivo se une a 05 por la clave), `features_*.csv`, `resumen_06_features.csv`, `contexto_aglomerado_trimestre.csv`, `vivienda_distribuciones.csv` |
 
 `notebooks/00_explorar.ipynb` es de solo lectura: arma vistas DuckDB sobre las capas ya
 escritas para explorar sin volver a correr el pipeline.

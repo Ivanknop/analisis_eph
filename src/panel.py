@@ -17,11 +17,12 @@ from armonizacion import es_historico, trimestres_publicados
 # se reusa el valor ya confirmado).
 PCT_ROTACION_TEORICA = 50.0
 
-# Ventana de `diferencia_edad` aceptada como "misma persona" por horizonte --
-# PROVISORIA. Centrada en el desplazamiento esperado, no en 0: en h=4
-# pasa un año (moda observada en +1, 83.5% de los componentes con mismo sexo),
-# no en 0 (6.3%) -- ver diagnóstico de la tarea. h=1 cubre 92.92% de los
-# componentes con mismo sexo; h=4 cubre 93.22%.
+# Ventana de `diferencia_edad` aceptada como "misma persona" por horizonte.
+# Centrada en el desplazamiento esperado: en h=4 pasa un año (moda +1).
+# Contra (0,1)/(-1,2) en h=1 y (1,1)/(-1,2) en h=4 (diagnóstico 2026-11-10):
+# las angostas pierden 3,0/10,4 pp de confirmación, más en hogares grandes;
+# la amplia suma 1,7/1,3 pp pero el resto del hogar coincide menos en los
+# pares que agrega (86/78% contra 92/87%).
 TOLERANCIA_EDAD_POR_HORIZONTE = {1: (-1, 1), 4: (0, 2)}
 
 # `CH06` nunca vale 0 en los 86 trimestres de `01_armonizado/individual` -- los
