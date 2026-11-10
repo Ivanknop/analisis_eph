@@ -68,8 +68,11 @@ Las notebooks se corren en orden: cada una lee la capa que escribió la anterior
 | `05_distancia_linea_pobreza` | `data/02_nucleo/`, `data/01_armonizado/` | `data/02b_distancia_linea_pobreza/hogar/`  `data/canastas_indec/*_crudo.csv` |
 | `05b_canastas_retropoladas` | `data/insumos_lineas/`, `data/canastas_indec/` | canasta histórica según Tornarolli, 2003T1–2016T1 |
 | `05c_distancia_historica` | `data/02_nucleo/`, `data/01_armonizado/` | `data/02b_distancia_linea_pobreza/hogar/` (era `"historica"`, 2003T3–2015T2, mismas particiones que `05`), `linea_pobreza_trimestral.csv`, `frontera_2015_2016_vs_cedlas.csv` |
+| `05d_no_respuesta_historica` | `data/01_armonizado/`, `data/02_nucleo/`, `data/02b_distancia_linea_pobreza/hogar/`, `data/03_panel/` | `imputacion_*.csv` — diagnóstico de la imputación de ingresos de INDEC en la era histórica (`IDIMPH`/`IDIMPP`), no escribe capas |
 | `06_trayectorias_distancia` | `data/02b_distancia_linea_pobreza/hogar/`, `data/03_panel/` | `data/05_trayectoria_distancia/{pares_h1,pares_h4}/` (solo era `"regional_2016"`) |
+| `06c_trayectorias_distancia_historica` | `data/02b_distancia_linea_pobreza/hogar/`, `data/03_panel/`, `data/01_armonizado/` | `data/05_trayectoria_distancia/{pares_h1,pares_h4}/` (era `"historica"`, 2003T3–2015T2, mismas particiones que `06`; agrega `par_valido_c`, imputación y flags de corte) |
 | `06b_diagnosticos_trayectoria` | `data/05_trayectoria_distancia/` | CSV descriptivos (tendencia, regresión a la media, conteos train/holdout) |
+| `06d_diagnosticos_dos_universos` | `data/05_trayectoria_distancia/`, `data/02b_distancia_linea_pobreza/hogar/` | `dos_universos_*.csv` — 2003–2025 contra 2016–2025: conteos, líneas base, dispersión por era, sensibilidades |
 
 `notebooks/00_explorar.ipynb` es de solo lectura: arma vistas DuckDB sobre las capas ya
 escritas para explorar sin volver a correr el pipeline.

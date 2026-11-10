@@ -11,8 +11,9 @@
 #   - El resto de los insumos versionados de data/ (canastas_indec/, los CSV
 #     de data/meta/ listados como "D" en el README).
 #
-# Orden numérico de los notebooks (sin restricciones topológicas adicionales
-# por ahora). 00_explorar.ipynb no entra: es de solo lectura.
+# Orden numérico de los notebooks, salvo 06c junto a 06 (escriben la misma
+# capa, una era cada uno, antes de los diagnósticos 06b/06d). 00_explorar.ipynb
+# no entra: es de solo lectura.
 #
 # Tiempo estimado con todo ya cacheado/descargado: ~1 hora (86 trimestres
 # completos). Ver duraciones reales de corridas anteriores en
@@ -34,8 +35,11 @@ NOTEBOOKS=(
     05_distancia_linea_pobreza
     05b_canastas_retropoladas
     05c_distancia_historica
+    05d_no_respuesta_historica
     06_trayectorias_distancia
+    06c_trayectorias_distancia_historica
     06b_diagnosticos_trayectoria
+    06d_diagnosticos_dos_universos
 )
 
 for nb in "${NOTEBOOKS[@]}"; do
