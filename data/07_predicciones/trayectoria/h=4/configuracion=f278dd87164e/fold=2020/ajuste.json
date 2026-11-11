@@ -1,0 +1,16 @@
+{
+  "anio_validacion": 2018,
+  "n_es": 253712,
+  "n_validacion": 19166,
+  "n_final": 291643,
+  "mejor_iteracion": 72,
+  "n_iteraciones_final": 83,
+  "perdida_validacion": 0.2459118191236801,
+  "segundos": 6.618600130081177,
+  "fraccion_historica_train": 0.8240245779943287,
+  "n_test_limpio": 13952,
+  "n_test_imputados": 0,
+  "commit_git": "16843c2",
+  "arbol_sucio": true,
+  "hash_diff": "347a066c130d8dec"
+}

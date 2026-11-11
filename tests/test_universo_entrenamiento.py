@@ -184,3 +184,43 @@ def test_unir_objetivo_trae_la_variacion_de_la_05():
     validos = unido[unido["par_valido_c"]]
     assert validos["variacion_simetrica"].notna().all()
     assert np.isfinite(validos.loc[validos["par_valido_log_c"], "variacion_log"].astype(float)).all()
+
+
+def _escribir_particion(raiz: Path, h: int, anio: int, tabla: pd.DataFrame) -> None:
+    ruta = raiz / f"pares_h{h}" / f"ANO4={anio}" / "TRIMESTRE=1"
+    ruta.mkdir(parents=True)
+    tabla.to_parquet(ruta / "data.parquet")
+
+
+def test_unir_marcas_imputacion_completa_la_regular_sin_columnas(tmp_path):
+    clave = {"NRO_HOGAR_t": 1, "NRO_HOGAR_th": 1, "TRIMESTRE_t": 1}
+    historica = pd.DataFrame({"CODUSU": ["H1", "H2"], "ANO4_t": 2010, **clave,
+                              "imputado_t": [True, False], "imputado_th": [False, False],
+                              "fraccion_max_t": [0.7, 0.0], "fraccion_max_th": [0.0, 0.0]})
+    regular = pd.DataFrame({"CODUSU": ["R1"], "ANO4_t": 2020, **clave, "variacion_simetrica": [0.1]})
+    _escribir_particion(tmp_path, 1, 2010, historica)
+    _escribir_particion(tmp_path, 1, 2020, regular)
+    universo = pd.DataFrame({"CODUSU": ["H1", "H2", "R1"], "ANO4_t": [2010, 2010, 2020], **clave,
+                             "era": ["historica", "historica", "regional_2016"]})
+    unido = ue.unir_marcas_imputacion(universo, tmp_path, 1).set_index("CODUSU")
+    assert unido.loc["H1", "imputado_t"] == True and unido.loc["H1", "fraccion_max_t"] == 0.7  # noqa: E712
+    assert unido.loc["R1", "imputado_t"] == False and unido.loc["R1", "fraccion_max_th"] == 0.0  # noqa: E712
+    assert len(unido) == 3
+
+
+def test_unir_marcas_imputacion_rechaza_regular_marcada(tmp_path):
+    clave = {"CODUSU": ["R1"], "NRO_HOGAR_t": 1, "NRO_HOGAR_th": 1, "ANO4_t": 2020, "TRIMESTRE_t": 1}
+    _escribir_particion(tmp_path, 1, 2020, pd.DataFrame({**clave, "imputado_t": [True], "imputado_th": [False],
+                                                         "fraccion_max_t": [0.2], "fraccion_max_th": [0.0]}))
+    with pytest.raises(ValueError):
+        ue.unir_marcas_imputacion(pd.DataFrame({**clave, "era": ["regional_2016"]}), tmp_path, 1)
+
+
+@REQUIERE_CAPAS
+@pytest.mark.parametrize("h,esperado", [(1, 240815), (4, 191598)])
+def test_regla_fraccion_max_reproduce_conteo_05d(h, esperado):
+    universo = ue.unir_marcas_imputacion(ue.leer_universo(FEATURES, h), TRAYECTORIA, h)
+    historicos = universo[(universo["era"] == "historica") & universo["par_valido_simetrica"]]
+    fraccion = pd.concat([historicos[f"fraccion_max_{l}"].astype(float).where(
+        historicos[f"imputado_{l}"].fillna(False).astype(bool), 0.0) for l in ("t", "th")], axis=1).max(axis=1, skipna=False)
+    assert int((fraccion <= cte.UMBRAL_FRACCION_IMPUTADA).sum()) == esperado

@@ -1,0 +1,9 @@
+{
+  "n_final": 308200,
+  "fraccion_historica_train": 0.7797566515249837,
+  "n_test_limpio": 15382,
+  "n_test_imputados": 0,
+  "commit_git": "16843c2",
+  "arbol_sucio": true,
+  "hash_diff": "805115c3338b6a54"
+}

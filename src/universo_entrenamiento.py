@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+import pyarrow.parquet as pq
 
 import constantes as cte
 import cortes_trayectoria as ct
@@ -62,6 +63,35 @@ def unir_objetivo(universo: pd.DataFrame, raiz_trayectoria: Path, h: int,
     if faltantes:
         raise ValueError(f"h={h}: {faltantes} pares del universo sin fila en la 05")
     return unido.drop(columns="_merge")
+
+
+COLUMNAS_IMPUTACION = ["imputado_t", "imputado_th", "fraccion_max_t", "fraccion_max_th"]
+
+
+def unir_marcas_imputacion(universo: pd.DataFrame, raiz_trayectoria: Path, h: int) -> pd.DataFrame:
+    """`universo` con `COLUMNAS_IMPUTACION` de la 05 por `CLAVE_PAR`. Pares sin esas
+    columnas en la 05 (era regular): `imputado = False`, fracción `0`."""
+    # `unir_objetivo` no sirve acá: los Parquet regulares de la 05 no tienen estas columnas
+    # y pyarrow falla al pedirlas. En la regular no hay imputación INDEC (no respuesta = PONDIH 0).
+    partes = []
+    for ruta in particiones(raiz_trayectoria, h):
+        if set(COLUMNAS_IMPUTACION) <= set(pq.read_schema(ruta).names):
+            partes.append(pd.read_parquet(ruta, columns=[*CLAVE_PAR, *COLUMNAS_IMPUTACION]))
+    unido = universo.drop(columns=COLUMNAS_IMPUTACION, errors="ignore")
+    if partes:
+        marcas = pd.concat(partes, ignore_index=True)
+        unido = unido.merge(marcas, on=CLAVE_PAR, how="left", validate="one_to_one")
+    else:
+        unido = unido.assign(**{c: pd.NA for c in COLUMNAS_IMPUTACION})
+    regular = (unido["era"] == "regional_2016").to_numpy()
+    if unido.loc[regular, ["imputado_t", "imputado_th"]].astype("boolean").fillna(False).to_numpy().any():
+        raise ValueError(f"h={h}: par regular con marca de imputación histórica")
+    for lado in ("t", "th"):
+        unido[f"imputado_{lado}"] = unido[f"imputado_{lado}"].astype("boolean")
+        unido[f"fraccion_max_{lado}"] = unido[f"fraccion_max_{lado}"].astype("Float64")
+        unido.loc[regular, f"imputado_{lado}"] = False
+        unido.loc[regular, f"fraccion_max_{lado}"] = 0.0
+    return unido
 
 
 def en_universo(pares: pd.DataFrame, universo: str) -> pd.Series:

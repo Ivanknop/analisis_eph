@@ -1,0 +1,26 @@
+{
+  "anio_validacion": 2020,
+  "n_es": 203285,
+  "n_validacion": 8203,
+  "n_final": 215112,
+  "perdida_validacion": 0.294907086217046,
+  "perdidas_validacion": {
+    "0.1": 0.294907086217046,
+    "1.0": 0.29496503767682264,
+    "10.0": 0.29524800449695704,
+    "100.0": 0.29810116414879134,
+    "1000.0": 0.310553749613947,
+    "10000.0": 0.38019064575501405,
+    "100000.0": 0.6931471805599452
+  },
+  "fuerza_en_borde": true,
+  "fuerza": 0.1,
+  "n_columnas_lineal": 95,
+  "segundos": 697.7847731113434,
+  "fraccion_historica_train": 0.6823794116553238,
+  "n_test_limpio": 12828,
+  "n_test_imputados": 0,
+  "commit_git": "16843c2",
+  "arbol_sucio": true,
+  "hash_diff": "347a066c130d8dec"
+}

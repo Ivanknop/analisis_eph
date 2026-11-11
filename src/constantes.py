@@ -32,3 +32,15 @@ VARIANTES_PRECARIEDAD = {
 INDICES_VIVIENDA = {"deficit_ancla_nbi": "vivienda_precaria_v1_t", "deficit_ampliado": "vivienda_precaria_v2_t"}
 
 SENSIBILIDADES_CORTES = ["con_marcados", "sin_cortes_puntuales", "sin_cortes_ni_intervenido"]
+
+# Fase C (`.claude/decisiones.md`, "Objetivos de modelado y validación"). El criterio
+# principal es `imputacion_excluye` (variante C): va primero en la lista del experimento.
+OBJETIVOS_MODELADO = ["trayectoria", "entrada", "permanencia"]
+CRITERIO_IMPUTACION_PRINCIPAL = "imputacion_excluye"
+UMBRAL_FRACCION_IMPUTADA = 0.5
+CRITERIOS_IMPUTACION_EXPERIMENTO = ["imputacion_excluye", "imputacion_conserva",
+                                    "imputacion_excluye_fraccion_max_0.5", "imputacion_excluye_reponderado"]
+TECNICAS = ["linea_base", "lineal_regularizado", "gradient_boosting"]
+PONDERACIONES = ["sin_ponderar", "ponderado_trimestre"]
+EVALUACIONES_AGRUPADAS = ["evaluacion_completa", "evaluacion_sin_viviendas_train"]
+CONJUNTOS_EVALUACION = ["limpio", "imputados"]
