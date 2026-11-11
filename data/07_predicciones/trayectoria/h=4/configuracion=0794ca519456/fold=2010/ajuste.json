@@ -1,0 +1,20 @@
+{
+  "anio_validacion": 2008,
+  "n_es": 49306,
+  "n_validacion": 18916,
+  "n_final": 83083,
+  "mejor_iteracion": 240,
+  "n_iteraciones_final": 360,
+  "perdida_validacion": 0.2306549868938233,
+  "segundos": 5.366022348403931,
+  "peso_medio": 1.3695581526906828,
+  "peso_p99": 2.2,
+  "peso_max": 2.7941176470588234,
+  "kish_relativo": 0.961773451470035,
+  "fraccion_historica_train": 1.0,
+  "n_test_limpio": 16997,
+  "n_test_imputados": 9107,
+  "commit_git": "bd1edd1",
+  "arbol_sucio": true,
+  "hash_diff": "d7319027912e8e7a"
+}

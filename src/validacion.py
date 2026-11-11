@@ -122,7 +122,7 @@ def mascara_train(pares: pd.DataFrame, variable: str = "simetrica",
     (`constantes.CRITERIOS_IMPUTACION_EXPERIMENTO`) para `variable` (`simetrica`/`log`)."""
     conserva = ue.es_valido(pares, variable, "imputacion_conserva")
     excluye = ue.es_valido(pares, variable, "imputacion_excluye")
-    if criterio_imputacion in ("imputacion_excluye", "imputacion_excluye_reponderado"):
+    if criterio_imputacion in ("imputacion_excluye", *cte.CRITERIOS_REPONDERADOS):
         return excluye
     if criterio_imputacion == "imputacion_conserva":
         return conserva
@@ -633,11 +633,16 @@ def estado_arbol_git(repo: Path) -> dict:
             "hash_diff": None if diff is None else (hashlib.sha256(diff.encode()).hexdigest()[:16] if diff else "")}
 
 
+def id_parametros(parametros: dict) -> str:
+    """`configuracion_id`: 12 primeros hex del SHA-256 de `parametros` en JSON ordenado."""
+    serializado = json.dumps(parametros, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(serializado.encode()).hexdigest()[:12]
+
+
 def manifest_configuracion(parametros: dict, repo: Path, notebook_origen: str, descripcion: str = "") -> dict:
     """Manifest de una configuración de `07_predicciones`: `configuracion_id` (hash
     de `parametros`), fecha, estado de git (`estado_arbol_git`) y origen."""
-    serializado = json.dumps(parametros, sort_keys=True, ensure_ascii=False, default=str)
-    return {"configuracion_id": hashlib.sha256(serializado.encode()).hexdigest()[:12],
+    return {"configuracion_id": id_parametros(parametros),
             "fecha": pd.Timestamp.now().isoformat(timespec="seconds"), **estado_arbol_git(repo),
             "parametros": parametros, "notebook_origen": notebook_origen, "descripcion": descripcion}
 

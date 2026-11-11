@@ -9,6 +9,9 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+import validacion as va
+from features import CLAVE_PAR
+
 CLAVE_HOGAR_TRIMESTRE = ["CODUSU", "NRO_HOGAR", "AGLOMERADO", "ANO4", "TRIMESTRE"]
 VARIABLES_VIVIENDA = ["IV1", "IV2", "IV3", "IV4", "IV5", "IV6", "IV7", "IV8", "IV9", "IV10", "IV11",
                       "IV12_1", "IV12_2", "IV12_3"]
@@ -47,6 +50,23 @@ PARAMETROS_LGBM = {"learning_rate": 0.05, "num_leaves": 31, "min_data_in_leaf": 
                    "bagging_fraction": 0.8, "bagging_freq": 1, "lambda_l2": 1.0, "num_threads": 2, "verbose": -1,
                    "seed": 0}
 RONDAS_LGBM = 300
+P_MIN_PESO = 0.05
+PERCENTIL_RECORTE_PESO = 0.99
+N_FOLDS_PROPENSION = 5
+# Codebook INDEC (`data/EPH_tot_urbano_estructura_bases_2025.pdf`, variable AGLOMERADO).
+NOMBRES_AGLOMERADO = {
+    2: "Gran La Plata", 3: "Bahía Blanca-Cerri", 4: "Gran Rosario", 5: "Gran Santa Fe", 6: "Gran Paraná",
+    7: "Posadas", 8: "Gran Resistencia", 9: "Comodoro Rivadavia-Rada Tilly", 10: "Gran Mendoza", 12: "Corrientes",
+    13: "Gran Córdoba", 14: "Concordia", 15: "Formosa", 17: "Neuquén-Plottier", 18: "Santiago del Estero-La Banda",
+    19: "Jujuy-Palpalá", 20: "Río Gallegos", 22: "Gran Catamarca", 23: "Gran Salta", 25: "La Rioja",
+    26: "Gran San Luis", 27: "Gran San Juan", 29: "Gran Tucumán-Tafí Viejo", 30: "Santa Rosa-Toay",
+    31: "Ushuaia-Río Grande", 32: "Ciudad Autónoma de Buenos Aires", 33: "Partidos del Gran Buenos Aires",
+    34: "Mar del Plata", 36: "Río Cuarto", 38: "San Nicolás-Villa Constitución", 91: "Rawson-Trelew",
+    93: "Viedma-Carmen de Patagones",
+}
+COLUMNAS_FUERA_PROPENSION = (*CLAVE_HOGAR_TRIMESTRE, "era", "n_jefes")
+COLUMNAS_PARES_PROPENSION = [*CLAVE_PAR, "ANO4_th", "TRIMESTRE_th", "AGLOMERADO_t", "AGLOMERADO_th", "era_t", "identidad_confirmada",
+                             "par_valido_simetrica", "par_valido_c"]
 
 
 def rama_caes(codigo: pd.Series, anio: int, trimestre: int) -> pd.Series:
@@ -172,10 +192,13 @@ def grupos_vivienda(df: pd.DataFrame, n_folds: int = 5) -> np.ndarray:
     return (pd.util.hash_pandas_object(clave, index=False).to_numpy() % n_folds).astype(int)
 
 
-def _ajustar(X: pd.DataFrame, y: np.ndarray, objetivo: str, peso: np.ndarray | None = None):
+def _ajustar(X: pd.DataFrame, y: np.ndarray, objetivo: str, peso: np.ndarray | None = None,
+             num_threads: int | None = None):
     import lightgbm as lgb
 
     parametros = {**PARAMETROS_LGBM, "objective": objetivo}
+    if num_threads is not None:
+        parametros["num_threads"] = num_threads
     datos = lgb.Dataset(X, label=y, weight=peso, categorical_feature="auto", free_raw_data=False)
     return lgb.train(parametros, datos, num_boost_round=RONDAS_LGBM)
 
@@ -186,13 +209,13 @@ def ajustar_lgbm(X: pd.DataFrame, y: pd.Series, objetivo: str = "binary"):
 
 
 def predecir_fuera_de_fold(X: pd.DataFrame, y: pd.Series, fold: np.ndarray, objetivo: str = "binary",
-                           ) -> tuple[pd.Series, pd.DataFrame]:
+                           num_threads: int | None = None) -> tuple[pd.Series, pd.DataFrame]:
     """Predicción fuera de fold de LightGBM e importancia por ganancia (media entre folds, normalizada a 1)."""
     prediccion = pd.Series(np.nan, index=X.index)
     importancias = []
     for k in np.unique(fold):
         entrena, prueba = fold != k, fold == k
-        modelo = _ajustar(X[entrena], y[entrena].astype(float).to_numpy(), objetivo)
+        modelo = _ajustar(X[entrena], y[entrena].astype(float).to_numpy(), objetivo, num_threads=num_threads)
         prediccion[prueba] = modelo.predict(X[prueba])
         importancias.append(pd.Series(modelo.feature_importance("gain"), index=X.columns))
     importancia = pd.concat(importancias, axis=1).mean(axis=1)
@@ -232,3 +255,116 @@ def metricas_continuas(y: pd.Series, prediccion: pd.Series) -> dict:
     error = pv - yv
     return {"n": int(valido.sum()), "rmse": float(np.sqrt(np.mean(error ** 2))), "mae": float(np.mean(np.abs(error))),
             "r2": float(1 - np.sum(error ** 2) / np.sum((yv - yv.mean()) ** 2)), "sesgo": float(error.mean())}
+
+
+def columnas_propension(variables: pd.DataFrame) -> list[str]:
+    """Columnas de `variables_hogar` que entran al modelo de propensión (sin clave, era ni fecha)."""
+    return [c for c in variables.columns if c not in COLUMNAS_FUERA_PROPENSION]
+
+
+def leer_pares_05(ruta_trayectoria: Path, h: int, columnas=COLUMNAS_PARES_PROPENSION) -> pd.DataFrame:
+    """Pares de `data/05_trayectoria_distancia/pares_h{h}` con las `columnas` presentes."""
+    partes = []
+    for ruta in sorted((Path(ruta_trayectoria) / f"pares_h{h}").glob("ANO4=*/TRIMESTRE=*/data.parquet")):
+        disponibles = pq.read_schema(ruta).names
+        partes.append(pd.read_parquet(ruta, columns=[c for c in columnas if c in disponibles]))
+    return pd.concat(partes, ignore_index=True)
+
+
+def marcar_perdidos_por_ingreso(pares: pd.DataFrame, clases: pd.DataFrame) -> pd.DataFrame:
+    """Agrega `valido_actual` (criterio `imputacion_excluye`), `clase_t`/`clase_th` y
+    `perdido_por_ingreso` (identidad confirmada, no válido, alguna punta no declarada)."""
+    # Misma regla que `leer_pares_train` del 05f: par_valido_c en la histórica,
+    # par_valido_simetrica en la regular (donde coinciden).
+    historica = pares["era_t"] == "historica"
+    resultado = pares.copy()
+    resultado["valido_actual"] = np.where(historica, pares["par_valido_c"].astype("boolean").fillna(False),
+                                          pares["par_valido_simetrica"].astype("boolean").fillna(False)).astype(bool)
+    for lado in ("t", "th"):
+        info = clases[[*CLAVE_HOGAR_TRIMESTRE, "clase"]].rename(columns={
+            "NRO_HOGAR": f"NRO_HOGAR_{lado}", "AGLOMERADO": f"AGLOMERADO_{lado}", "ANO4": f"ANO4_{lado}",
+            "TRIMESTRE": f"TRIMESTRE_{lado}", "clase": f"clase_{lado}"})
+        resultado = resultado.merge(info, on=["CODUSU", f"NRO_HOGAR_{lado}", f"AGLOMERADO_{lado}", f"ANO4_{lado}",
+                                              f"TRIMESTRE_{lado}"], how="left", validate="many_to_one")
+    identidad = resultado["identidad_confirmada"].astype("boolean").fillna(False).astype(bool)
+    resultado["perdido_por_ingreso"] = identidad & ~resultado["valido_actual"] & (
+        (resultado["clase_t"] != "declarado") | (resultado["clase_th"] != "declarado"))
+    return resultado
+
+
+def unir_variables_t(pares: pd.DataFrame, variables: pd.DataFrame) -> pd.DataFrame:
+    """`pares` con las columnas de `columnas_propension(variables)` del hogar en `t`."""
+    columnas = columnas_propension(variables)
+    en_t = variables[[*CLAVE_HOGAR_TRIMESTRE, *columnas]].rename(columns={
+        "NRO_HOGAR": "NRO_HOGAR_t", "AGLOMERADO": "AGLOMERADO_t", "ANO4": "ANO4_t", "TRIMESTRE": "TRIMESTRE_t"})
+    return pares.merge(en_t, on=["CODUSU", "NRO_HOGAR_t", "AGLOMERADO_t", "ANO4_t", "TRIMESTRE_t"], how="left",
+                       validate="many_to_one")
+
+
+def pesos_con_corte(probabilidad: pd.Series, corte: float, p_min: float = P_MIN_PESO) -> pd.Series:
+    """`1 / max(p, p_min)` recortado en `corte` (el percentil se fija afuera, en train)."""
+    return (1.0 / probabilidad.astype(float).clip(lower=p_min)).clip(upper=corte)
+
+
+def _parametros_propension(num_threads: int) -> dict:
+    return {**PARAMETROS_LGBM, "num_threads": num_threads, "objective": "binary"}
+
+
+@va.solo_train
+def ajustar_propension_fold(poblacion: pd.DataFrame, columnas: list[str], num_threads: int = 2,
+                            n_folds: int = N_FOLDS_PROPENSION, p_min: float = P_MIN_PESO,
+                            percentil_recorte: float = PERCENTIL_RECORTE_PESO) -> dict:
+    """Propensión de par válido por era sobre `poblacion` (train del fold): pesos de los
+    válidos por predicción fuera de fold por vivienda, modelo completo y corte p99 por era."""
+    import lightgbm as lgb
+
+    pesos, modelos, cortes, metricas = [], {}, {}, []
+    for era, grupo in poblacion.groupby("era_t", sort=True):
+        datos = a_categoricas(grupo.reset_index(drop=True), [c for c in CATEGORICAS if c in columnas])
+        y = datos["valido_actual"].astype(int)
+        fold = grupos_vivienda(datos.rename(columns={"AGLOMERADO_t": "AGLOMERADO"}), n_folds)
+        probabilidad = pd.Series(np.nan, index=datos.index)
+        parametros = _parametros_propension(num_threads)
+        for k in np.unique(fold):
+            entrena = fold != k
+            modelo = lgb.train(parametros, lgb.Dataset(datos.loc[entrena, columnas], label=y[entrena].astype(float)),
+                               num_boost_round=RONDAS_LGBM)
+            probabilidad[~entrena] = modelo.predict(datos.loc[~entrena, columnas])
+        validos = y == 1
+        crudo = 1.0 / probabilidad[validos].clip(lower=p_min)
+        cortes[era] = float(crudo.quantile(percentil_recorte))
+        peso = pesos_con_corte(probabilidad[validos], cortes[era], p_min)
+        pesos.append(pd.Series(peso.to_numpy(), index=pd.MultiIndex.from_frame(datos.loc[validos, CLAVE_PAR])))
+        modelos[era] = lgb.train(parametros, lgb.Dataset(datos[columnas], label=y.astype(float)),
+                                 num_boost_round=RONDAS_LGBM)
+        metricas.append({"era": era, **metricas_binarias(y, probabilidad), **{f"peso_{k}": v for k, v in
+                                                                            resumen_pesos(peso).items()}})
+    return {"pesos": pd.concat(pesos) if pesos else pd.Series(dtype=float), "modelos": modelos, "cortes": cortes,
+            "metricas": pd.DataFrame(metricas), "columnas": list(columnas), "p_min": p_min,
+            "claves_ajuste": pd.MultiIndex.from_frame(poblacion[CLAVE_PAR])}
+
+
+def pesos_propension_test(ajuste: dict, test: pd.DataFrame) -> pd.Series:
+    """Peso de propensión de cada par de `test` (con las X en `t`) con el modelo y el
+    corte de su era en `ajuste`; `NA` si la era no tiene modelo. Índice: `CLAVE_PAR`."""
+    clave = pd.MultiIndex.from_frame(test[CLAVE_PAR])
+    if clave.isin(ajuste["claves_ajuste"]).any():
+        raise ValueError("pares del test entre las filas de ajuste de la propensión")
+    peso = pd.Series(np.nan, index=test.index)
+    columnas = ajuste["columnas"]
+    for era, grupo in test.groupby("era_t", sort=True):
+        if era not in ajuste["modelos"]:
+            continue
+        datos = a_categoricas(grupo, [c for c in CATEGORICAS if c in columnas])
+        probabilidad = pd.Series(ajuste["modelos"][era].predict(datos[columnas]), index=grupo.index)
+        peso[grupo.index] = pesos_con_corte(probabilidad, ajuste["cortes"][era], ajuste["p_min"])
+    return pd.Series(peso.to_numpy(), index=clave)
+
+
+def parametros_peso_propension(num_threads: int) -> tuple:
+    """Parámetros del peso de `imputacion_excluye_reponderado_propension` para el manifest."""
+    import json
+
+    return (("modelo", "lightgbm_por_era_variables_hogar_t"), ("p_min", P_MIN_PESO),
+            ("percentil_recorte", PERCENTIL_RECORTE_PESO), ("n_folds_vivienda", N_FOLDS_PROPENSION),
+            ("rondas", RONDAS_LGBM), ("parametros_lgbm", json.dumps(_parametros_propension(num_threads), sort_keys=True)))

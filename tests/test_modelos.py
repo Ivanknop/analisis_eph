@@ -190,10 +190,10 @@ def test_fold_que_falla_se_registra_y_sigue_pero_la_fuga_corta(pares_h1, tmp_pat
     monkeypatch.setattr(va, "_salida_git", lambda repo, *args: "")
     original = mo.entrenar_fold
 
-    def falla_en_2016(train, configuracion, fuerza=None):
+    def falla_en_2016(train, configuracion, fuerza=None, peso=None):
         if train["ANO4_t"].max() == 2015:
             raise RuntimeError("falla simulada")
-        return original(train, configuracion, fuerza)
+        return original(train, configuracion, fuerza, peso)
 
     monkeypatch.setattr(mo, "entrenar_fold", falla_en_2016)
     registro = _correr(pares_h1, tmp_path, [2016, 2021])
@@ -243,3 +243,145 @@ def test_funciones_solo_train_de_modelos_rechazan_holdout(nombre):
 def test_trayectoria_log_lleva_decil_de_referencia():
     tecnicas = {c.tecnica for c in mo.configuraciones_bloque_a("trayectoria", "log", 1)}
     assert tecnicas == {"decil_ratio", "gradient_boosting"}
+
+
+def test_campos_nuevos_vacios_no_cambian_el_id():
+    base = _configuracion()
+    assert "parametros_peso" not in base.parametros() and "aglomerados_fuera_train" not in base.parametros()
+    con_peso = mo.Configuracion(*[getattr(base, c) for c in ("objetivo_modelado", "variable", "h", "tecnica")],
+                                "imputacion_excluye_reponderado_propension", base.columnas, base.hiperparametros,
+                                parametros_peso=(("p_min", 0.05),))
+    assert mo.id_configuracion(con_peso) != mo.id_configuracion(base)
+
+
+RAIZ_PREDICCIONES = Path(__file__).resolve().parents[1] / "data" / "07_predicciones"
+
+
+@pytest.mark.skipif(not RAIZ_PREDICCIONES.exists(), reason="sin data/07_predicciones")
+def test_ids_del_bloque_a_coinciden_con_los_directorios_escritos():
+    for objetivo, variable in (("trayectoria", "simetrica"), ("trayectoria", "log"), ("entrada", "simetrica"),
+                               ("permanencia", "simetrica")):
+        for h in (1, 4):
+            for configuracion in mo.configuraciones_bloque_a(objetivo, variable, h):
+                directorio = mo.directorio_configuracion(RAIZ_PREDICCIONES, configuracion,
+                                                         mo.id_configuracion(configuracion))
+                assert (directorio / "manifest.json").exists(), configuracion.nombre
+
+
+def test_peso_uno_da_el_mismo_modelo_que_sin_peso(pares_h1):
+    train, test = mo.datos_fold(pares_h1, 2016, "trayectoria", "simetrica", "imputacion_excluye")
+    sin = mo.entrenar_fold(train, _configuracion())
+    con = mo.entrenar_fold(train, _configuracion(), peso=pd.Series(1.0, index=train.index))
+    pd.testing.assert_series_equal(mo.predecir(sin, test), mo.predecir(con, test))
+    with pytest.raises(ValueError):
+        mo.entrenar_fold(train, _configuracion(), peso=pd.Series(1.0, index=train.index[:-1]))
+
+
+def test_peso_reponderado_conserva_el_total_de_cada_celda(pares_h1):
+    configuracion = _configuracion(criterio="imputacion_excluye_reponderado")
+    train, _ = mo.datos_fold_configuracion(pares_h1, 2010, configuracion)
+    peso = mo.peso_train_fold(pares_h1, 2010, train, configuracion)
+    rol = va.asignar_fold(pares_h1, 2010)
+    universo = pares_h1[(rol == "train") & va.mascara_train(pares_h1, "simetrica", "imputacion_conserva")]
+    total = universo.groupby(va.CELDAS_REPONDERACION).size()
+    retenido = peso.groupby([train[c] for c in va.CELDAS_REPONDERACION]).sum()
+    pd.testing.assert_series_equal(retenido.sort_index(), total.astype(float).sort_index(), check_names=False)
+    assert mo.peso_train_fold(pares_h1, 2010, train, _configuracion()) is None
+
+
+def test_peso_propension_externo_exige_todos_los_pares(pares_h1):
+    configuracion = _configuracion(criterio="imputacion_excluye_reponderado_propension")
+    train, _ = mo.datos_fold_configuracion(pares_h1, 2016, configuracion)
+    externos = pd.Series(np.linspace(1, 2, len(train)), index=pd.MultiIndex.from_frame(train[CLAVE_PAR]))
+    peso = mo.peso_train_fold(pares_h1, 2016, train, configuracion, externos)
+    assert peso.index.equals(train.index) and peso.iloc[-1] == 2.0
+    with pytest.raises(ValueError):
+        mo.peso_train_fold(pares_h1, 2016, train, configuracion, externos.iloc[1:])
+    with pytest.raises(ValueError):
+        mo.peso_train_fold(pares_h1, 2016, train, configuracion, None)
+
+
+def test_correr_con_pesos_escribe_pesos_y_modelo(pares_h1, tmp_path, monkeypatch):
+    monkeypatch.setattr(va, "_salida_git", lambda repo, *args: "")
+    configuracion = _configuracion(criterio="imputacion_excluye_reponderado")
+    registro = mo.correr_configuracion(pares_h1, [2010], configuracion, tmp_path, Path("."), "test", guardar_modelo=True)
+    carpeta = mo.ruta_fold(mo.directorio_configuracion(tmp_path, configuracion, mo.id_configuracion(configuracion)), 2010).parent
+    assert (carpeta / "pesos_train.parquet").exists() and (carpeta / "modelo.txt").exists()
+    assert 0 < registro.loc[0, "kish_relativo"] <= 1
+
+
+def test_aglomerados_fuera_del_train_y_filtro_de_evaluacion(pares_h1, tmp_path, monkeypatch):
+    monkeypatch.setattr(va, "_salida_git", lambda repo, *args: "")
+    base = _configuracion()
+    sin_1 = mo.Configuracion(base.objetivo_modelado, base.variable, base.h, base.tecnica, base.criterio_imputacion,
+                             base.columnas, base.hiperparametros, aglomerados_fuera_train=(1,))
+    train, test = mo.datos_fold_configuracion(pares_h1, 2016, sin_1)
+    assert not train["AGLOMERADO_t"].eq(1).any() and test["AGLOMERADO_t"].eq(1).any()
+    assert sin_1.nombre == "gradient_boosting|imputacion_excluye_sin_baja_respuesta"
+    for configuracion in (base, sin_1):
+        mo.correr_configuracion(pares_h1, [2016], configuracion, tmp_path, Path("."), "test")
+    resto = mo.evaluar_configuraciones_fold(pares_h1, tmp_path, [base, sin_1], 2016, n_boot=5, excluir_aglomerados=(1,))
+    solo = mo.evaluar_configuraciones_fold(pares_h1, tmp_path, [base, sin_1], 2016, n_boot=5, aglomerados=(1,))
+    limpio_test = test[va.mascara_evaluacion(test)]
+    assert resto["n_pares"].iloc[0] == int((limpio_test["AGLOMERADO_t"] != 1).sum())
+    assert solo["n_pares"].iloc[0] == int((limpio_test["AGLOMERADO_t"] == 1).sum())
+    assert "gradient_boosting|excluye_sin_baja_respuesta_menos_excluye" in set(resto["configuracion"])
+
+
+def test_lectura_ponderada_por_propension_usa_peso_test(pares_h1, tmp_path, monkeypatch):
+    monkeypatch.setattr(va, "_salida_git", lambda repo, *args: "")
+    base = _configuracion()
+    mo.correr_configuracion(pares_h1, [2016], base, tmp_path, Path("."), "test")
+    _, test = mo.datos_fold(pares_h1, 2016, "trayectoria", "simetrica", "imputacion_excluye")
+    peso = pd.Series(1.0, index=pd.MultiIndex.from_frame(test[CLAVE_PAR]))
+    def rmse(tabla):
+        return tabla.set_index(["configuracion", "metrica"]).loc[(base.nombre, "rmse"), "valor"]
+
+    uno = mo.evaluar_configuraciones_fold(pares_h1, tmp_path, [base], 2016, ponderacion=cte.PONDERACION_PROPENSION,
+                                          n_boot=0, peso_test=peso)
+    sin = mo.evaluar_configuraciones_fold(pares_h1, tmp_path, [base], 2016, n_boot=0)
+    assert rmse(uno) == pytest.approx(rmse(sin))
+    doble_en_mitad = peso * np.where(np.arange(len(peso)) % 2, 3.0, 1.0)
+    otro = mo.evaluar_configuraciones_fold(pares_h1, tmp_path, [base], 2016, ponderacion=cte.PONDERACION_PROPENSION,
+                                           n_boot=0, peso_test=doble_en_mitad)
+    assert rmse(otro) != pytest.approx(rmse(sin))
+    with pytest.raises(ValueError):
+        mo.evaluar_configuraciones_fold(pares_h1, tmp_path, [base], 2016, ponderacion=cte.PONDERACION_PROPENSION, n_boot=0)
+
+
+def test_diferencias_generalizadas_y_decil_de_referencia():
+    rng = np.random.default_rng(5)
+    n = 300
+    y = pd.Series((rng.uniform(size=n) < 0.3).astype(float))
+    nombres = ["decil_ratio|imputacion_excluye", "gradient_boosting|imputacion_excluye",
+               "gradient_boosting|imputacion_excluye_reponderado_propension"]
+    predicciones = {nombre: pd.Series(np.clip(0.3 + rng.normal(0, 0.1, n), 0.01, 0.99)) for nombre in nombres}
+    vivienda = pd.DataFrame({"CODUSU": np.arange(n), "AGLOMERADO_t": 1})
+    tabla = mo.evaluar_fold_comparado(predicciones, y, "entrada", {"imputacion_excluye": 0.3}, vivienda,
+                                      n_boot=5).set_index(["configuracion", "metrica"])["valor"]
+    assert ("gradient_boosting|excluye_reponderado_propension_menos_excluye", "log_loss") in tabla.index
+    assert ("gradient_boosting|imputacion_excluye_reponderado_propension", "auc_roc__menos_decil") in tabla.index
+
+
+def test_configuracion_gb_de_excluye_es_la_del_bloque_a():
+    for objetivo in cte.OBJETIVOS_MODELADO:
+        for h in (1, 4):
+            referencia = [c for c in mo.configuraciones_referencia(objetivo, h) if c.tecnica == "gradient_boosting"]
+            assert mo.id_configuracion(mo.configuracion_gb(objetivo, h, "imputacion_excluye")) == \
+                mo.id_configuracion(referencia[0])
+            propension = mo.configuracion_gb(objetivo, h, "imputacion_excluye_reponderado_propension")
+            assert "parametros_peso" in propension.parametros()
+
+
+def test_evaluacion_preparada_da_lo_mismo_en_paralelo(pares_h1, tmp_path, monkeypatch):
+    from joblib import Parallel, delayed
+
+    monkeypatch.setattr(va, "_salida_git", lambda repo, *args: "")
+    base = _configuracion()
+    mo.correr_configuracion(pares_h1, [2016, 2021], base, tmp_path, Path("."), "test")
+    preparados = [mo.preparar_evaluacion_fold(pares_h1, tmp_path, [base], anio) for anio in (2016, 2021)]
+    secuencial = [mo.evaluar_configuraciones_fold(pares_h1, tmp_path, [base], anio, n_boot=10) for anio in (2016, 2021)]
+    paralelo = Parallel(n_jobs=2)(delayed(mo.evaluar_preparado)(p, 10) for p in preparados)
+    for a, b in zip(secuencial, paralelo):
+        pd.testing.assert_frame_equal(a, b)
+    assert mo.evaluar_preparado(None).empty

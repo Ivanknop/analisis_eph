@@ -93,3 +93,80 @@ def test_variables_hogar_armoniza_no_corresponde_y_menores(tmp_path):
     _escribir(tmp_path, "individual", individual)
     v = variables_hogar(2019, 2, tmp_path).iloc[0]
     assert v["IX_MEN10"] == 0 and pd.isna(v["PP04A_jefe"]) and pd.isna(v["PP07K_jefe"]) and pd.isna(v["PP3E_TOT_jefe"])
+
+
+import pytest  # noqa: E402
+
+import no_respuesta_modelo as nm  # noqa: E402
+import validacion as va  # noqa: E402
+
+
+def _poblacion(desde=2014, hasta=2021, por_trimestre=60, seed=1) -> pd.DataFrame:
+    rng = np.random.default_rng(seed)
+    filas = []
+    for anio in range(desde, hasta + 1):
+        if anio == 2015:
+            continue
+        for trimestre in range(1, 5):
+            for k in range(por_trimestre):
+                x = float(rng.normal())
+                filas.append({"CODUSU": f"V{anio}{trimestre}{k}", "NRO_HOGAR_t": 1, "NRO_HOGAR_th": 1,
+                              "ANO4_t": anio, "TRIMESTRE_t": trimestre, "ANO4_th": anio + (trimestre == 4),
+                              "TRIMESTRE_th": trimestre % 4 + 1, "AGLOMERADO_t": 1 + k % 4,
+                              "era_t": "historica" if anio <= 2015 else "regional_2016", "x1": x,
+                              "REGION": str(1 + k % 3), "valido_actual": bool(rng.uniform() < 1 / (1 + np.exp(-x)))})
+    return pd.DataFrame(filas)
+
+
+def test_propension_fold_un_modelo_por_era_y_corte_de_train():
+    poblacion = _poblacion()
+    train = poblacion[poblacion["ANO4_th"] * 4 + poblacion["TRIMESTRE_th"] - 1 < 2020 * 4]
+    ajuste = nm.ajustar_propension_fold(train, ["x1", "REGION"], percentil_recorte=0.9)
+    assert set(ajuste["modelos"]) == {"historica", "regional_2016"}
+    assert len(ajuste["pesos"]) == int(train["valido_actual"].sum())
+    for era, corte in ajuste["cortes"].items():
+        assert corte >= 1.0
+    assert ajuste["pesos"].max() <= max(ajuste["cortes"].values()) + 1e-12
+    test = poblacion[poblacion["ANO4_t"] == 2021]
+    peso_test = nm.pesos_propension_test(ajuste, test)
+    assert peso_test.notna().all() and peso_test.max() <= ajuste["cortes"]["regional_2016"] + 1e-12
+    with pytest.raises(ValueError):
+        nm.pesos_propension_test(ajuste, train.head(5))
+
+
+def test_propension_test_sin_modelo_de_su_era_queda_na():
+    poblacion = _poblacion()
+    solo_historica = poblacion[poblacion["era_t"] == "historica"]
+    ajuste = nm.ajustar_propension_fold(solo_historica[solo_historica["ANO4_t"] == 2014], ["x1", "REGION"])
+    peso = nm.pesos_propension_test(ajuste, poblacion[poblacion["ANO4_t"] == 2016])
+    assert peso.isna().all()
+
+
+def test_propension_fold_rechaza_holdout():
+    poblacion = _poblacion(desde=2021, hasta=2023)
+    with pytest.raises(va.FugaHoldoutError):
+        nm.ajustar_propension_fold(poblacion, ["x1", "REGION"])
+
+
+def test_pesos_con_corte():
+    w = nm.pesos_con_corte(pd.Series([0.01, 0.5, 1.0]), corte=10.0)
+    assert w.tolist() == [10.0, 2.0, 1.0]
+
+
+def test_marcar_perdidos_por_ingreso():
+    pares = pd.DataFrame({"CODUSU": ["A", "B", "C"], "NRO_HOGAR_t": 1, "NRO_HOGAR_th": 1, "AGLOMERADO_t": 2,
+                          "AGLOMERADO_th": 2, "ANO4_t": 2017, "TRIMESTRE_t": 1, "ANO4_th": 2017, "TRIMESTRE_th": 2,
+                          "era_t": "regional_2016", "identidad_confirmada": [True, True, False],
+                          "par_valido_simetrica": [True, False, False], "par_valido_c": pd.NA})
+    clases = pd.DataFrame({"CODUSU": ["A", "B", "C"] * 2, "NRO_HOGAR": 1, "AGLOMERADO": 2, "ANO4": 2017,
+                           "TRIMESTRE": [1, 1, 1, 2, 2, 2],
+                           "clase": ["declarado", "declarado", "declarado", "declarado", "indeterminado", "indeterminado"]})
+    marcados = nm.marcar_perdidos_por_ingreso(pares, clases)
+    assert marcados["valido_actual"].tolist() == [True, False, False]
+    assert marcados["perdido_por_ingreso"].tolist() == [False, True, False]
+
+
+def test_columnas_de_pares_traen_las_claves_de_las_dos_puntas():
+    claves = {"CODUSU", "NRO_HOGAR_t", "NRO_HOGAR_th", "AGLOMERADO_t", "AGLOMERADO_th", "ANO4_t", "TRIMESTRE_t",
+              "ANO4_th", "TRIMESTRE_th"}
+    assert claves <= set(nm.COLUMNAS_PARES_PROPENSION)

@@ -39,8 +39,13 @@ OBJETIVOS_MODELADO = ["trayectoria", "entrada", "permanencia"]
 CRITERIO_IMPUTACION_PRINCIPAL = "imputacion_excluye"
 UMBRAL_FRACCION_IMPUTADA = 0.5
 CRITERIOS_IMPUTACION_EXPERIMENTO = ["imputacion_excluye", "imputacion_conserva",
-                                    "imputacion_excluye_fraccion_max_0.5", "imputacion_excluye_reponderado"]
+                                    "imputacion_excluye_fraccion_max_0.5", "imputacion_excluye_reponderado",
+                                    "imputacion_excluye_reponderado_propension"]
+CRITERIOS_REPONDERADOS = ["imputacion_excluye_reponderado", "imputacion_excluye_reponderado_propension"]
 TECNICAS = ["linea_base", "lineal_regularizado", "gradient_boosting"]
 PONDERACIONES = ["sin_ponderar", "ponderado_trimestre"]
+# Lectura del bloque C con pesos de propensión estimados en el train del fold: queda fuera de
+# `PONDERACIONES` porque esa lista la recorren las líneas base del 08, que no tienen esos pesos.
+PONDERACION_PROPENSION = "ponderado_propension"
 EVALUACIONES_AGRUPADAS = ["evaluacion_completa", "evaluacion_sin_viviendas_train"]
 CONJUNTOS_EVALUACION = ["limpio", "imputados"]

@@ -40,6 +40,7 @@ NIVELES_CATEGORICOS = {
 }
 
 TECNICAS_MODELO = ["decil_ratio", "lineal_regularizado", "gradient_boosting"]
+SUFIJO_SIN_AGLOMERADOS = "_sin_baja_respuesta"
 CRITERIOS_BLOQUE_A = ["imputacion_excluye", "imputacion_conserva"]
 
 PARAMETROS_GB_FIJOS = {
@@ -245,17 +246,27 @@ class Configuracion:
     columnas: tuple[str, ...]
     hiperparametros: tuple = ()
     penalizacion: str | None = None
+    parametros_peso: tuple = ()
+    aglomerados_fuera_train: tuple = ()
 
     def parametros(self) -> dict:
-        return {"objetivo_modelado": self.objetivo_modelado, "variable": self.variable, "h": self.h,
-                "tecnica": self.tecnica, "criterio_imputacion": self.criterio_imputacion,
-                "universo": "universo_2003_2025", "version_x": VERSION_X, "columnas_x": list(self.columnas),
-                "hiperparametros": dict(self.hiperparametros), "penalizacion": self.penalizacion,
-                "parametros_gb_fijos": PARAMETROS_GB_FIJOS if self.tecnica == "gradient_boosting" else None}
+        parametros = {"objetivo_modelado": self.objetivo_modelado, "variable": self.variable, "h": self.h,
+                      "tecnica": self.tecnica, "criterio_imputacion": self.criterio_imputacion,
+                      "universo": "universo_2003_2025", "version_x": VERSION_X, "columnas_x": list(self.columnas),
+                      "hiperparametros": dict(self.hiperparametros), "penalizacion": self.penalizacion,
+                      "parametros_gb_fijos": PARAMETROS_GB_FIJOS if self.tecnica == "gradient_boosting" else None}
+        # Solo si no están vacíos: así el hash (`configuracion_id`) de las configuraciones
+        # del bloque A, escritas antes de que existieran estos campos, no cambia.
+        if self.parametros_peso:
+            parametros["parametros_peso"] = dict(self.parametros_peso)
+        if self.aglomerados_fuera_train:
+            parametros["aglomerados_fuera_train"] = list(self.aglomerados_fuera_train)
+        return parametros
 
     @property
     def nombre(self) -> str:
-        return f"{self.tecnica}|{self.criterio_imputacion}"
+        sufijo = SUFIJO_SIN_AGLOMERADOS if self.aglomerados_fuera_train else ""
+        return f"{self.tecnica}|{self.criterio_imputacion}{sufijo}"
 
 
 def _y(pares: pd.DataFrame, objetivo_modelado: str, variable: str) -> pd.Series:
@@ -263,13 +274,16 @@ def _y(pares: pd.DataFrame, objetivo_modelado: str, variable: str) -> pd.Series:
 
 
 @va.solo_train
-def entrenar_fold(train_fold: pd.DataFrame, configuracion: Configuracion, fuerza: float | None = None) -> ModeloAjustado:
-    """Ajusta `configuracion` sobre `train_fold` (ya filtrado a su población y criterio):
-    validación interna para iteraciones o fuerza (si `fuerza` es None) y reajuste final
-    sobre todo `train_fold`. `None` si la validación interna no es utilizable."""
+def entrenar_fold(train_fold: pd.DataFrame, configuracion: Configuracion, fuerza: float | None = None,
+                  peso: pd.Series | None = None) -> ModeloAjustado:
+    """Ajusta `configuracion` sobre `train_fold` (ya filtrado), con `peso` de muestra
+    (1 si es None): validación interna (sin ponderar) y reajuste final sobre todo
+    `train_fold`. `None` si la validación interna no es utilizable."""
     objetivo, variable, columnas = configuracion.objetivo_modelado, configuracion.variable, list(configuracion.columnas)
     y = _y(train_fold, objetivo, variable)
-    peso = pd.Series(1.0, index=train_fold.index)
+    peso = pd.Series(1.0, index=train_fold.index) if peso is None else peso.astype(float).reindex(train_fold.index)
+    if peso.isna().any() or (peso < 0).any():
+        raise ValueError("pesos de train faltantes o negativos")
     if configuracion.tecnica == "decil_ratio":
         modelo = va.ajustar_linea_base(train_fold, objetivo, "decil_ratio", variable)
         return ModeloAjustado("decil_ratio", objetivo, columnas, modelo, info={"n_final": len(train_fold)})
@@ -336,13 +350,58 @@ def datos_fold(pares: pd.DataFrame, anio_test: int, objetivo_modelado: str, vari
     return train, test
 
 
+@va.solo_train
+def datos_fold_configuracion(pares: pd.DataFrame, anio_test: int, configuracion: Configuracion
+                             ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """`datos_fold` de `configuracion`, con su train sin `aglomerados_fuera_train` (el test queda entero)."""
+    train, test = datos_fold(pares, anio_test, configuracion.objetivo_modelado, configuracion.variable,
+                             configuracion.criterio_imputacion)
+    if configuracion.aglomerados_fuera_train:
+        train = train[~train["AGLOMERADO_t"].astype(int).isin(configuracion.aglomerados_fuera_train)]
+    return train, test
+
+
+@va.solo_train
+def peso_train_fold(pares: pd.DataFrame, anio_test: int, train: pd.DataFrame, configuracion: Configuracion,
+                    pesos_externos: pd.Series | None = None) -> pd.Series | None:
+    """Peso de muestra del train del fold: `None` (sin peso), el de `conjunto_train` para
+    `_reponderado` o `pesos_externos` (índice `CLAVE_PAR`) para `_reponderado_propension`."""
+    criterio = configuracion.criterio_imputacion
+    if criterio == "imputacion_excluye_reponderado":
+        rol = va.asignar_fold(pares, anio_test)
+        universo = pares[(rol == "train") & va.poblacion_objetivo(pares, configuracion.objetivo_modelado)]
+        if configuracion.aglomerados_fuera_train:
+            universo = universo[~universo["AGLOMERADO_t"].astype(int).isin(configuracion.aglomerados_fuera_train)]
+        seleccion, peso = va.conjunto_train(universo, configuracion.variable, criterio)
+        if not seleccion.index.equals(train.index):
+            raise ValueError("el train reponderado no coincide con el del fold")
+        return peso
+    if criterio == "imputacion_excluye_reponderado_propension":
+        if pesos_externos is None:
+            raise ValueError("el nivel de propensión exige `pesos_externos`")
+        peso = pesos_externos.reindex(pd.MultiIndex.from_frame(train[CLAVE_PAR]))
+        if peso.isna().any():
+            raise ValueError(f"{int(peso.isna().sum())} pares de train sin peso de propensión")
+        return pd.Series(peso.to_numpy(), index=train.index)
+    return None
+
+
+def resumen_peso(peso: pd.Series) -> dict:
+    """Media, p99, máximo y tamaño efectivo de Kish relativo (`(Σw)²/Σw²/n`) de `peso`."""
+    w = peso.astype(float)
+    return {"peso_medio": float(w.mean()), "peso_p99": float(w.quantile(0.99)), "peso_max": float(w.max()),
+            "kish_relativo": float(w.sum() ** 2 / (w ** 2).sum() / len(w))}
+
+
 def directorio_configuracion(raiz: Path, configuracion: Configuracion, configuracion_id: str) -> Path:
     """Carpeta de la configuración en `07_predicciones` (`validacion.ruta_predicciones` sin el archivo)."""
     return va.ruta_predicciones(raiz, configuracion.objetivo_modelado, configuracion.h, configuracion_id).parent
 
 
 def id_configuracion(configuracion: Configuracion) -> str:
-    return va.manifest_configuracion(configuracion.parametros(), Path("."), "")["configuracion_id"]
+    # Sin pasar por `manifest_configuracion`: el manifest consulta git (~20s con el filtro
+    # nbstripout) y el id es solo el hash de los parámetros.
+    return va.id_parametros(configuracion.parametros())
 
 
 def ruta_fold(directorio: Path, fold: int | str) -> Path:
@@ -396,10 +455,12 @@ def leer_ajuste(directorio: Path, fold: int | str) -> dict:
 @va.solo_train
 def correr_configuracion(pares: pd.DataFrame, folds: list[int], configuracion: Configuracion, raiz: Path, repo: Path,
                          notebook_origen: str, rehacer: bool = False,
-                         fuerzas: dict[int, float] | None = None) -> pd.DataFrame:
-    """Entrena y escribe en `raiz` cada fold de `folds` para `configuracion`,
-    salteando los ya completos (`fold_completo`) salvo `rehacer`. Devuelve una
-    fila por fold con el registro del ajuste."""
+                         fuerzas: dict[int, float] | None = None,
+                         pesos_externos: dict[int, pd.Series] | None = None,
+                         guardar_modelo: bool = False) -> pd.DataFrame:
+    """Entrena y escribe en `raiz` cada fold de `folds` (con pesos de `peso_train_fold`
+    y, si `guardar_modelo`, el booster), salteando los completos salvo `rehacer`.
+    Una fila por fold con el registro del ajuste."""
     configuracion_id = id_configuracion(configuracion)
     directorio = directorio_configuracion(raiz, configuracion, configuracion_id)
     if rehacer and directorio.exists():
@@ -408,6 +469,9 @@ def correr_configuracion(pares: pd.DataFrame, folds: list[int], configuracion: C
         _escribir_json(directorio / "manifest.json",
                        va.manifest_configuracion(configuracion.parametros(), repo, notebook_origen, configuracion.nombre))
     filas = []
+    # Una vez por llamada, y solo si hay algo que escribir: `git diff HEAD` pasa por el
+    # filtro nbstripout de cada notebook (~20s) y el árbol no cambia mientras corre.
+    estado_git: dict = {}
     for anio in folds:
         base = {"configuracion_id": configuracion_id, "configuracion": configuracion.nombre, "anio_test": anio}
         if fold_completo(directorio, anio):
@@ -416,12 +480,13 @@ def correr_configuracion(pares: pd.DataFrame, folds: list[int], configuracion: C
         # Una falla de un fold queda registrada y no corta el resto (la reanudación permite
         # rehacerlo); la fuga de holdout y el verificador, afuera del try, sí cortan todo.
         try:
-            train, test = datos_fold(pares, anio, configuracion.objetivo_modelado, configuracion.variable,
-                                     configuracion.criterio_imputacion)
+            train, test = datos_fold_configuracion(pares, anio, configuracion)
             if fuerzas is not None and anio not in fuerzas:
                 filas.append({**base, "omitido": "sin_fuerza_de_referencia", "reanudado": False})
                 continue
-            modelo = entrenar_fold(train, configuracion, None if fuerzas is None else fuerzas[anio])
+            externos = None if pesos_externos is None else pesos_externos.get(anio)
+            peso = peso_train_fold(pares, anio, train, configuracion, externos)
+            modelo = entrenar_fold(train, configuracion, None if fuerzas is None else fuerzas[anio], peso)
             if modelo is None:
                 filas.append({**base, "omitido": "sin_validacion_interna", "reanudado": False})
                 continue
@@ -435,10 +500,18 @@ def correr_configuracion(pares: pd.DataFrame, folds: list[int], configuracion: C
         ruta = ruta_fold(directorio, anio)
         ruta.parent.mkdir(parents=True, exist_ok=True)
         tabla.to_parquet(ruta, index=False)
-        ajuste = {**modelo.info, "fraccion_historica_train": float((train["era"] == "historica").mean()),
+        if not estado_git:
+            estado_git = va.estado_arbol_git(repo)
+        resumen = {}
+        if peso is not None:
+            train[CLAVE_PAR].assign(peso=peso.to_numpy()).to_parquet(ruta.parent / "pesos_train.parquet", index=False)
+            resumen = resumen_peso(peso)
+        if guardar_modelo and configuracion.tecnica == "gradient_boosting":
+            modelo.estimador.save_model(str(ruta.parent / "modelo.txt"))
+        ajuste = {**modelo.info, **resumen, "fraccion_historica_train": float((train["era"] == "historica").mean()),
                   "n_test_limpio": int((tabla["conjunto_evaluacion"] == "limpio").sum()),
                   "n_test_imputados": int((tabla["conjunto_evaluacion"] == "imputados").sum()),
-                  **va.estado_arbol_git(repo)}
+                  **estado_git}
         _escribir_json(ruta.parent / "ajuste.json", ajuste)
         filas.append({**base, **ajuste, "reanudado": False})
     return pd.DataFrame(filas)
@@ -560,6 +633,28 @@ def configuraciones_bloque_a(objetivo_modelado: str, variable: str, h: int) -> l
     return configuraciones
 
 
+CRITERIOS_BLOQUE_C = ["imputacion_excluye_fraccion_max_0.5", "imputacion_excluye_reponderado",
+                      "imputacion_excluye_reponderado_propension"]
+
+
+def configuracion_gb(objetivo_modelado: str, h: int, criterio_imputacion: str,
+                     aglomerados_fuera_train: tuple = ()) -> Configuracion:
+    """GB simétrico con los hiperparámetros del bloque A para `criterio_imputacion`."""
+    import no_respuesta_modelo as nm
+
+    parametros_peso = (nm.parametros_peso_propension(HILOS)
+                       if criterio_imputacion == "imputacion_excluye_reponderado_propension" else ())
+    return Configuracion(objetivo_modelado, "simetrica", h, "gradient_boosting", criterio_imputacion,
+                         tuple(columnas_x(h)), tuple(sorted(HIPERPARAMETROS_GB[(objetivo_modelado, h)].items())),
+                         parametros_peso=parametros_peso, aglomerados_fuera_train=tuple(aglomerados_fuera_train))
+
+
+def configuraciones_referencia(objetivo_modelado: str, h: int) -> list[Configuracion]:
+    """Decil y GB de `imputacion_excluye` del bloque A (ya escritos, no se reentrenan)."""
+    return [c for c in configuraciones_bloque_a(objetivo_modelado, "simetrica", h)
+            if c.criterio_imputacion == cte.CRITERIO_IMPUTACION_PRINCIPAL and c.tecnica != "lineal_regularizado"]
+
+
 def _metricas(objetivo_modelado: str, y: pd.Series, prediccion: pd.Series, base: pd.Series, media_train: float,
               peso: pd.Series | None) -> dict:
     if va.es_clasificacion(objetivo_modelado):
@@ -568,7 +663,7 @@ def _metricas(objetivo_modelado: str, y: pd.Series, prediccion: pd.Series, base:
 
 
 DIFERENCIAS_CLASIFICACION = ["log_loss", "brier", "auc_roc", "auc_pr_relativa", "pendiente_calibracion",
-                             "intercepto_calibracion", "ece"]
+                             "intercepto_calibracion", "ece", "diferencia_media_predicha"]
 DIFERENCIAS_REGRESION = ["mae", "rmse", "skill_vs_base"]
 
 
@@ -576,30 +671,39 @@ def evaluar_fold_comparado(predicciones: dict[str, pd.Series], y: pd.Series, obj
                            medias_train: dict[str, float], vivienda: pd.DataFrame, peso: pd.Series | None = None,
                            n_boot: int = 200, seed: int = 42) -> pd.DataFrame:
     """Métricas de cada configuración (`"técnica|criterio"`) contra el decil de su
-    criterio y diferencias pareadas conserva − excluye por técnica, con IC95% de
-    un único bootstrap por vivienda (las mismas réplicas para todo)."""
+    criterio (o el de `excluye`) y diferencias pareadas criterio − excluye por técnica,
+    con IC95% de un único bootstrap por vivienda (las mismas réplicas para todo)."""
     nombres = list(predicciones)
     diferencias = DIFERENCIAS_CLASIFICACION if va.es_clasificacion(objetivo_modelado) else DIFERENCIAS_REGRESION
+    referencia = f"|{cte.CRITERIO_IMPUTACION_PRINCIPAL}"
+
+    def decil_de(criterio: str) -> str:
+        propio = f"decil_ratio|{criterio}"
+        return propio if propio in predicciones else f"decil_ratio{referencia}"
 
     def todas(datos: pd.DataFrame, w: pd.Series) -> dict:
         por_configuracion = {}
         for nombre in nombres:
             criterio = nombre.split("|")[1]
+            media = medias_train.get(nombre, medias_train.get(criterio))
             por_configuracion[nombre] = _metricas(objetivo_modelado, y, predicciones[nombre],
-                                                  predicciones.get(f"decil_ratio|{criterio}"), medias_train[criterio], w)
+                                                  predicciones.get(decil_de(criterio)), media, w)
         resultado = {f"{n}#{m}": v for n, metricas in por_configuracion.items() for m, v in metricas.items()}
         for nombre, metricas in por_configuracion.items():
             tecnica, criterio = nombre.split("|")
-            decil = por_configuracion.get(f"decil_ratio|{criterio}")
+            decil = por_configuracion.get(decil_de(criterio))
             if decil is not None and tecnica != "decil_ratio":
                 for metrica in diferencias:
                     resultado[f"{nombre}#{metrica}__menos_decil"] = metricas[metrica] - decil[metrica]
-        for tecnica in {n.split("|")[0] for n in nombres}:
-            conserva = por_configuracion.get(f"{tecnica}|imputacion_conserva")
-            excluye = por_configuracion.get(f"{tecnica}|imputacion_excluye")
-            if conserva is not None and excluye is not None:
-                for metrica in diferencias:
-                    resultado[f"{tecnica}|conserva_menos_excluye#{metrica}"] = conserva[metrica] - excluye[metrica]
+        for nombre, metricas in por_configuracion.items():
+            tecnica, criterio = nombre.split("|")
+            excluye = por_configuracion.get(f"{tecnica}{referencia}")
+            if excluye is None or nombre == f"{tecnica}{referencia}":
+                continue
+            # `imputacion_conserva` -> `conserva_menos_excluye`, el nombre que ya leen 09 y 10.
+            etiqueta = f"{tecnica}|{criterio.removeprefix('imputacion_')}_menos_excluye"
+            for metrica in diferencias:
+                resultado[f"{etiqueta}#{metrica}"] = metricas[metrica] - excluye[metrica]
         return resultado
 
     tabla = va.bootstrap_metricas_cluster(vivienda, list(vivienda.columns), todas, peso, n_boot, seed)
@@ -625,37 +729,79 @@ def resumen_estabilidad(metricas_fold: pd.DataFrame, valor: str = "valor") -> pd
 
 
 @va.solo_train
-def evaluar_configuraciones_fold(pares: pd.DataFrame, raiz: Path, configuraciones: list[Configuracion], anio_test: int,
-                                 conjunto: str = "limpio", ponderacion: str = "sin_ponderar", n_boot: int = 200,
-                                 seed: int = 42) -> pd.DataFrame:
-    """`evaluar_fold_comparado` sobre las predicciones escritas del fold `anio_test`
-    (conjunto común a todas las configuraciones), con la media de train de cada
-    criterio. Vacío si alguna configuración no tiene el fold."""
+def preparar_evaluacion_fold(pares: pd.DataFrame, raiz: Path, configuraciones: list[Configuracion], anio_test: int,
+                             conjunto: str = "limpio", ponderacion: str = "sin_ponderar",
+                             aglomerados: tuple | None = None, excluir_aglomerados: tuple | None = None,
+                             peso_test: pd.Series | None = None) -> dict | None:
+    """Insumos de `evaluar_preparado` para el fold (conjunto común de predicciones,
+    filtro de aglomerados, medias de train y peso de la lectura); `None` si falta algo."""
     tablas = {}
     for configuracion in configuraciones:
         ruta = ruta_fold(directorio_configuracion(raiz, configuracion, id_configuracion(configuracion)), anio_test)
         if not ruta.exists():
-            return pd.DataFrame()
+            return None
         prediccion = pd.read_parquet(ruta)
         va.verificar_predicciones_fuera_de_muestra(prediccion)
         prediccion = prediccion[(prediccion["fold"] == str(anio_test)) & (prediccion["conjunto_evaluacion"] == conjunto)]
         if prediccion.empty:
-            return pd.DataFrame()
+            return None
         tablas[configuracion.nombre] = prediccion.set_index(CLAVE_PAR)
     comunes = sorted(set.intersection(*(set(t.index) for t in tablas.values())))
     if not comunes:
-        return pd.DataFrame()
+        return None
     indice = pd.MultiIndex.from_tuples(comunes, names=CLAVE_PAR)
+    aglomerado = pares.set_index(CLAVE_PAR).loc[indice, "AGLOMERADO_t"].astype(int).to_numpy()
+    if aglomerados is not None:
+        indice = indice[np.isin(aglomerado, list(aglomerados))]
+    elif excluir_aglomerados is not None:
+        indice = indice[~np.isin(aglomerado, list(excluir_aglomerados))]
+    if not len(indice):
+        return None
     primera = configuraciones[0]
     y = next(iter(tablas.values())).loc[indice, "y_observado"].astype(float).reset_index(drop=True)
     predicciones = {n: t.loc[indice, "prediccion"].astype(float).reset_index(drop=True) for n, t in tablas.items()}
     datos = pares.set_index(CLAVE_PAR).loc[indice, ["AGLOMERADO_t", "peso_normalizado_trimestre"]].reset_index()
     medias = {}
-    for criterio in {c.criterio_imputacion for c in configuraciones}:
-        train, _ = datos_fold(pares, anio_test, primera.objetivo_modelado, primera.variable, criterio)
-        medias[criterio] = float(_y(train, primera.objetivo_modelado, primera.variable).mean())
-    peso = None if ponderacion == "sin_ponderar" else datos["peso_normalizado_trimestre"].astype(float)
-    tabla = evaluar_fold_comparado(predicciones, y, primera.objetivo_modelado, medias, datos[va.CLAVE_VIVIENDA], peso,
-                                   n_boot, seed)
-    return tabla.assign(objetivo_modelado=primera.objetivo_modelado, variable=primera.variable, h=primera.h,
-                        anio_test=anio_test, conjunto_evaluacion=conjunto, ponderacion=ponderacion, n_pares=len(comunes))
+    for configuracion in configuraciones:
+        train, _ = datos_fold_configuracion(pares, anio_test, configuracion)
+        medias[configuracion.nombre] = float(_y(train, primera.objetivo_modelado, primera.variable).mean())
+    if ponderacion == "sin_ponderar":
+        peso = None
+    elif ponderacion == "ponderado_trimestre":
+        peso = datos["peso_normalizado_trimestre"].astype(float)
+    elif ponderacion == cte.PONDERACION_PROPENSION:
+        if peso_test is None:
+            raise ValueError("la lectura ponderada por propensión exige `peso_test`")
+        peso = pd.Series(peso_test.reindex(indice).to_numpy(dtype=float))
+        if peso.isna().all():
+            return None
+    else:
+        raise ValueError(f"ponderación desconocida: {ponderacion}")
+    return {"predicciones": predicciones, "y": y, "objetivo_modelado": primera.objetivo_modelado, "medias": medias,
+            "vivienda": datos[va.CLAVE_VIVIENDA], "peso": peso,
+            "etiquetas": {"objetivo_modelado": primera.objetivo_modelado, "variable": primera.variable, "h": primera.h,
+                          "anio_test": anio_test, "conjunto_evaluacion": conjunto, "ponderacion": ponderacion,
+                          "n_pares": len(indice), "n_pares_con_peso": len(indice) if peso is None else int(peso.notna().sum())}}
+
+
+def evaluar_preparado(preparado: dict | None, n_boot: int = 200, seed: int = 42) -> pd.DataFrame:
+    """`evaluar_fold_comparado` sobre los insumos de `preparar_evaluacion_fold` (vacío si `None`)."""
+    if preparado is None:
+        return pd.DataFrame()
+    tabla = evaluar_fold_comparado(preparado["predicciones"], preparado["y"], preparado["objetivo_modelado"],
+                                   preparado["medias"], preparado["vivienda"], preparado["peso"], n_boot, seed)
+    return tabla.assign(**preparado["etiquetas"])
+
+
+@va.solo_train
+def evaluar_configuraciones_fold(pares: pd.DataFrame, raiz: Path, configuraciones: list[Configuracion], anio_test: int,
+                                 conjunto: str = "limpio", ponderacion: str = "sin_ponderar", n_boot: int = 200,
+                                 seed: int = 42, aglomerados: tuple | None = None,
+                                 excluir_aglomerados: tuple | None = None,
+                                 peso_test: pd.Series | None = None) -> pd.DataFrame:
+    """`evaluar_fold_comparado` sobre las predicciones escritas del fold (conjunto común,
+    opcionalmente solo `aglomerados` o sin `excluir_aglomerados`); `peso_test` (índice
+    `CLAVE_PAR`) para `ponderado_propension`. Vacío si falta algún fold."""
+    preparado = preparar_evaluacion_fold(pares, raiz, configuraciones, anio_test, conjunto, ponderacion, aglomerados,
+                                         excluir_aglomerados, peso_test)
+    return evaluar_preparado(preparado, n_boot, seed)
